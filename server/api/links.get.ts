@@ -46,15 +46,11 @@ export default defineEventHandler(async (event) => {
     }
 
     return user
-  } catch (error: unknown) {
-    if (error && typeof error === 'object' && 'statusCode' in error) {
-      throw error
-    }
-    
-    console.error('Fehler beim Abrufen der Links:', error)
+  } catch (error) {
+    console.error('Error fetching user links:', error)
     throw createError({
       statusCode: 500,
-      statusMessage: 'Interner Server-Fehler'
+      statusMessage: 'Fehler beim Abrufen der Links'
     })
   }
 }) 

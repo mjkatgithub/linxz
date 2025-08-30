@@ -38,29 +38,21 @@ export default defineEventHandler(async (event) => {
         email,
         username,
         password, // TODO: Hash das Passwort!
-        name: name || null
-      },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        name: true,
-        avatar: true,
-        bio: true,
-        createdAt: true
+        name
       }
     })
 
-    return user
-  } catch (error: unknown) {
-    if (error && typeof error === 'object' && 'statusCode' in error) {
-      throw error
+    return {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      name: user.name
     }
-    
-    console.error('Fehler bei User-Erstellung:', error)
+  } catch (error) {
+    console.error('Error creating user:', error)
     throw createError({
       statusCode: 500,
-      statusMessage: 'Interner Server-Fehler'
+      statusMessage: 'Fehler beim Erstellen des Users'
     })
   }
 }) 
