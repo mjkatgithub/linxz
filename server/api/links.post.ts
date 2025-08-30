@@ -1,15 +1,19 @@
 import prisma from '~/lib/prisma'
+import { requireAuth } from '~/lib/auth'
 
 export default defineEventHandler(async (event) => {
   try {
+    // Authentifizierung erforderlich
+    const user = requireAuth(event)
+    
     const body = await readBody(event)
-    const { title, url, description, isActive = true, order, userId } = body
+    const { title, url, description, isActive = true, order } = body
 
     // Validierung
-    if (!title || !url || !userId) {
+    if (!title || !url) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Titel, URL und User-ID sind erforderlich'
+        statusMessage: 'Titel und URL sind erforderlich'
       })
     }
 
@@ -21,7 +25,7 @@ export default defineEventHandler(async (event) => {
         description,
         isActive,
         order: order || 0,
-        userId: parseInt(userId)
+        userId: user.userId
       }
     })
 

@@ -1,6 +1,6 @@
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import prisma from '~/lib/prisma'
+import { hashPassword } from '~/lib/password'
+import { generateToken } from '~/lib/jwt'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -32,21 +32,32 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Erstelle neuen User (Passwort sollte hier gehashed werden!)
+    // Hash das Passwort
+    const hashedPassword = await hashPassword(password)
+
+    // Erstelle neuen User
     const user = await prisma.user.create({
       data: {
         email,
         username,
-        password, // TODO: Hash das Passwort!
+        password: hashedPassword,
         name
       }
+    })
+
+    // Generiere JWT Token
+    const token = generateToken({
+      userId: user.id,
+      username: user.username,
+      email: user.email
     })
 
     return {
       id: user.id,
       email: user.email,
       username: user.username,
-      name: user.name
+      name: user.name,
+      token
     }
   } catch (error) {
     console.error('Error creating user:', error)

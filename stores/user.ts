@@ -37,15 +37,19 @@ export const useUserStore = defineStore('user', {
       this.error = null
       
       try {
-        // TODO: Hier später echte Login-API implementieren
-        // Für jetzt: Dummy-Login (später durch echte Auth ersetzen)
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        const response = await $fetch('/api/auth/login', {
+          method: 'POST',
+          body: { email, password }
+        })
         
-        // Simuliere erfolgreichen Login
+        // Speichere Token im localStorage
+        localStorage.setItem('auth-token', response.token)
+        
+        // Setze User-Info
         this.currentUser = {
-          id: '1',
-          username: 'testuser',
-          email: email,
+          id: response.id.toString(),
+          username: response.username,
+          email: response.email,
           createdAt: new Date(),
           isAuthenticated: true
         }
@@ -73,6 +77,9 @@ export const useUserStore = defineStore('user', {
           body: signupData
         })
         
+        // Speichere Token im localStorage
+        localStorage.setItem('auth-token', response.token)
+        
         // Nach erfolgreicher Registrierung automatisch einloggen
         this.currentUser = {
           id: response.id.toString(),
@@ -98,6 +105,8 @@ export const useUserStore = defineStore('user', {
       this.currentUser = null
       this.userLinks = []
       this.error = null
+      // Entferne Token aus localStorage
+      localStorage.removeItem('auth-token')
     },
 
     // Links des Benutzers laden
@@ -150,13 +159,28 @@ export const useUserStore = defineStore('user', {
       this.isLoading = true
       
       try {
-        // TODO: Hier später echte API-Calls machen
-        await new Promise(resolve => setTimeout(resolve, 500))
+        const token = localStorage.getItem('auth-token')
+        if (!token) {
+          throw new Error('Nicht authentifiziert')
+        }
         
+        const response = await $fetch('/api/links', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: linkData
+        })
+        
+        // Konvertiere API-Response zu Link-Format
         const newLink: Link = {
-          ...linkData,
-          id: Date.now().toString(), // Einfache ID-Generierung
-          createdAt: new Date()
+          id: response.id.toString(),
+          title: response.title,
+          url: response.url,
+          description: response.description || undefined,
+          isActive: response.isActive,
+          order: response.order,
+          createdAt: new Date(response.createdAt)
         }
         
         this.userLinks.push(newLink)
@@ -164,6 +188,7 @@ export const useUserStore = defineStore('user', {
       } catch (error) {
         this.error = 'Fehler beim Hinzufügen des Links'
         console.error('Add link error:', error)
+        throw error
       } finally {
         this.isLoading = false
       }
@@ -228,6 +253,32 @@ export const useUserStore = defineStore('user', {
         console.error('Reorder links error:', error)
       } finally {
         this.isLoading = false
+      }
+    },
+
+    // Auto-Login beim App-Start
+    async checkAuth() {
+      const token = localStorage.getItem('auth-token')
+      if (!token) return false
+      
+      try {
+        // TODO: Token validieren mit API
+        // Für jetzt: Dummy-Check
+        this.currentUser = {
+          id: '1',
+          username: 'testuser',
+          email: 'test@example.com',
+          createdAt: new Date(),
+          isAuthenticated: true
+        }
+        
+        await this.loadUserLinks()
+        return true
+        
+      } catch (error) {
+        console.error('Auth check failed:', error)
+        localStorage.removeItem('auth-token')
+        return false
       }
     }
   }
