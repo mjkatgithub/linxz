@@ -37,10 +37,11 @@ export const useUserStore = defineStore('user', {
       this.error = null
       
       try {
-        // TODO: Hier später echte API-Calls machen
-        // Für jetzt: Dummy-Daten
-        await new Promise(resolve => setTimeout(resolve, 1000)) // Simuliere API-Call
+        // TODO: Hier später echte Login-API implementieren
+        // Für jetzt: Dummy-Login (später durch echte Auth ersetzen)
+        await new Promise(resolve => setTimeout(resolve, 1000))
         
+        // Simuliere erfolgreichen Login
         this.currentUser = {
           id: '1',
           username: 'testuser',
@@ -55,6 +56,38 @@ export const useUserStore = defineStore('user', {
       } catch (error) {
         this.error = 'Login fehlgeschlagen'
         console.error('Login error:', error)
+        throw error
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    // Benutzer registrieren
+    async signup(signupData: { email: string; username: string; password: string; name?: string }) {
+      this.isLoading = true
+      this.error = null
+      
+      try {
+        const response = await $fetch('/api/users', {
+          method: 'POST',
+          body: signupData
+        })
+        
+        // Nach erfolgreicher Registrierung automatisch einloggen
+        this.currentUser = {
+          id: response.id.toString(),
+          username: response.username,
+          email: response.email,
+          createdAt: new Date(),
+          isAuthenticated: true
+        }
+        
+        return response
+        
+      } catch (error) {
+        this.error = 'Registrierung fehlgeschlagen'
+        console.error('Signup error:', error)
+        throw error
       } finally {
         this.isLoading = false
       }
@@ -74,10 +107,26 @@ export const useUserStore = defineStore('user', {
       this.isLoading = true
       
       try {
-        // TODO: Hier später echte API-Calls machen
-        // Für jetzt: Dummy-Daten
-        await new Promise(resolve => setTimeout(resolve, 500))
+        // Lade Links über API
+        const response = await $fetch('/api/links', {
+          query: { username: this.currentUser.username }
+        })
         
+        // Konvertiere API-Response zu Link-Format
+        this.userLinks = response.links.map((link: any) => ({
+          id: link.id.toString(),
+          title: link.title,
+          url: link.url,
+          description: link.description,
+          isActive: link.isActive,
+          order: link.order,
+          createdAt: new Date(link.createdAt)
+        }))
+        
+      } catch (error) {
+        this.error = 'Fehler beim Laden der Links'
+        console.error('Load links error:', error)
+        // Fallback zu Dummy-Daten bei Fehler
         this.userLinks = [
           {
             id: '1',
@@ -87,30 +136,8 @@ export const useUserStore = defineStore('user', {
             isActive: true,
             order: 1,
             createdAt: new Date()
-          },
-          {
-            id: '2',
-            title: 'GitHub',
-            url: 'https://github.com',
-            description: 'Meine GitHub Profile',
-            isActive: true,
-            order: 2,
-            createdAt: new Date()
-          },
-          {
-            id: '3',
-            title: 'LinkedIn',
-            url: 'https://linkedin.com',
-            description: 'Mein LinkedIn Profil',
-            isActive: false,
-            order: 3,
-            createdAt: new Date()
           }
         ]
-        
-      } catch (error) {
-        this.error = 'Fehler beim Laden der Links'
-        console.error('Load links error:', error)
       } finally {
         this.isLoading = false
       }

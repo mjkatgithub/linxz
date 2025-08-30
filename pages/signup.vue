@@ -33,7 +33,7 @@
           block 
           size="large" 
           type="submit"
-          :loading="loading"
+          :loading="userStore.isLoading"
         >
           Registrieren
         </v-btn>
@@ -46,6 +46,12 @@
 </template>
 
 <script setup>
+import { useUserStore } from '~/stores/user'
+import { useAppStore } from '~/stores/app'
+
+const userStore = useUserStore()
+const appStore = useAppStore()
+
 const form = ref({
   email: '',
   username: '',
@@ -53,25 +59,22 @@ const form = ref({
   password: ''
 })
 
-const loading = ref(false)
-
 async function handleSignup() {
-  loading.value = true
-  
   try {
-    const response = await $fetch('/api/users', {
-      method: 'POST',
-      body: form.value
-    })
+    await userStore.signup(form.value)
     
     // Erfolgreiche Registrierung
-    console.log('User erstellt:', response)
-    await navigateTo('/login')
-  } catch (error) {
-    console.error('Fehler bei Registrierung:', error)
-    // TODO: Zeige Fehlermeldung an
-  } finally {
-    loading.value = false
+    appStore.addNotification('Registrierung erfolgreich!', 'success')
+    await navigateTo('/dashboard')
+    
+  } catch {
+    // Fehler wird bereits im Store behandelt
+    appStore.addNotification('Registrierung fehlgeschlagen', 'error')
   }
+}
+
+// Redirect wenn bereits eingeloggt
+if (userStore.isLoggedIn) {
+  await navigateTo('/dashboard')
 }
 </script> 

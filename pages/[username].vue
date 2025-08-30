@@ -1,28 +1,80 @@
 <template>
   <v-container class="py-10 d-flex flex-column align-center">
-    <v-avatar size="96" class="mb-4">
-      <v-img src="https://randomuser.me/api/portraits/men/1.jpg" alt="Avatar" />
-    </v-avatar>
-    <h2 class="mb-6">@{{ $route.params.username }}</h2>
-    <v-btn
-      v-for="link in links"
-      :key="link.url"
-      :href="link.url"
-      target="_blank"
-      class="mb-2"
-      color="primary"
-      size="large"
-      block
-    >
-      {{ link.label }}
-    </v-btn>
+    <!-- Loading State -->
+    <div v-if="pending" class="text-center py-8">
+      <v-progress-circular indeterminate size="64" />
+      <p class="mt-4">Lade Profil...</p>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="text-center py-8">
+      <v-icon size="64" color="error" class="mb-4">mdi-alert-circle</v-icon>
+      <h2>Profil nicht gefunden</h2>
+      <p class="text-body-1 mb-4">Der Benutzer "{{ $route.params.username }}" existiert nicht.</p>
+      <v-btn color="primary" @click="$router.push('/')">
+        Zur Startseite
+      </v-btn>
+    </div>
+
+    <!-- Profile Content -->
+    <div v-else-if="userData" class="w-100" style="max-width: 400px;">
+      <!-- Avatar -->
+      <div class="text-center mb-6">
+        <v-avatar size="96" class="mb-4">
+          <v-img 
+            v-if="userData.avatar" 
+            :src="userData.avatar" 
+            :alt="userData.username" 
+          />
+          <v-icon v-else size="48">mdi-account</v-icon>
+        </v-avatar>
+        <h2 class="mb-2">@{{ userData.username }}</h2>
+        <p v-if="userData.name" class="text-h6 mb-2">{{ userData.name }}</p>
+        <p v-if="userData.bio" class="text-body-1">{{ userData.bio }}</p>
+      </div>
+
+      <!-- Links -->
+      <div v-if="userData.links && userData.links.length > 0">
+        <v-btn
+          v-for="link in userData.links"
+          :key="link.id"
+          :href="link.url"
+          target="_blank"
+          class="mb-3"
+          color="primary"
+          size="large"
+          block
+          variant="elevated"
+        >
+          <v-icon v-if="link.icon" class="mr-2">{{ link.icon }}</v-icon>
+          {{ link.title }}
+        </v-btn>
+      </div>
+
+      <!-- No Links -->
+      <div v-else class="text-center py-8">
+        <v-icon size="48" class="mb-4">mdi-link-off</v-icon>
+        <p>Noch keine Links vorhanden</p>
+      </div>
+    </div>
   </v-container>
 </template>
 
 <script setup>
-const links = [
-  { label: 'Meine Website', url: 'https://example.com' },
-  { label: 'GitHub', url: 'https://github.com/' },
-  { label: 'Instagram', url: 'https://instagram.com/' },
-]
+const route = useRoute()
+const username = route.params.username
+
+// Lade Benutzer-Daten über API
+const { data: userData, pending, error } = await useFetch(`/api/links`, {
+  query: { username },
+  server: true
+})
+
+// SEO Meta Tags
+useHead({
+  title: `@${username} - Linxz`,
+  meta: [
+    { name: 'description', content: `Besuche das Profil von @${username} auf Linxz` }
+  ]
+})
 </script> 
