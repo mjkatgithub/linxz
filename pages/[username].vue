@@ -64,10 +64,22 @@ const route = useRoute()
 const username = route.params.username
 
 // Lade Benutzer-Daten über API
-const { data: userData, pending, error } = await useFetch(`/api/links`, {
-  query: { username },
-  server: true
-})
+const userData = ref(null)
+const pending = ref(true)
+const error = ref(null)
+
+try {
+  const response = await $fetch('/api/links', {
+    query: { username },
+    server: true
+  })
+  userData.value = response
+} catch (err) {
+  console.log(`User "${username}" nicht gefunden`)
+  error.value = err
+} finally {
+  pending.value = false
+}
 
 // openLink Funktion
 function openLink(url) {
