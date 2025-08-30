@@ -26,7 +26,6 @@ export default defineEventHandler(async (event) => {
     if (!user) {
       log.warning('Login attempt with non-existent user', {
         email,
-        ip: getClientIP(event),
         userAgent: getHeader(event, 'user-agent')
       })
       throw createError({
@@ -42,7 +41,6 @@ export default defineEventHandler(async (event) => {
         userId: user.id,
         username: user.username,
         email,
-        ip: getClientIP(event),
         userAgent: getHeader(event, 'user-agent')
       })
       throw createError({
@@ -62,8 +60,7 @@ export default defineEventHandler(async (event) => {
     log.info('User login successful', {
       userId: user.id,
       username: user.username,
-      email: user.email,
-      ip: getClientIP(event)
+      email: user.email
     })
 
     return {
@@ -77,8 +74,8 @@ export default defineEventHandler(async (event) => {
     log.error('API error', {
       endpoint: '/api/auth/login',
       method: 'POST',
-      error: error.message,
-      stack: error.stack
+      error: (error as Error).message,
+      stack: (error as Error).stack
     })
     throw createError({
       statusCode: 500,

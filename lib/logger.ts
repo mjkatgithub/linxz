@@ -25,10 +25,16 @@ const logger = winston.createLogger({
         winston.format.timestamp({
           format: 'YYYY-MM-DD HH:mm:ss'
         }),
-        winston.format.errors({ stack: true }),
-        winston.format.prettyPrint({
-          colorize: true,
-          depth: 4
+        winston.format.errors({ stack: false }),
+        winston.format.printf(({ timestamp, level, message, ...meta }) => {
+          // Erste Zeile: Timestamp + Level + Message
+          const firstLine = `${timestamp} ${level}: ${message}`
+          
+          // Zweite Zeile: Strukturierte Daten (ohne Stack)
+          const { stack, ...contextData } = meta
+          const secondLine = JSON.stringify(contextData, null, 2)
+          
+          return `${firstLine}\n${secondLine}`
         })
       )
     })
