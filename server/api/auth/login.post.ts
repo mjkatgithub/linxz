@@ -1,6 +1,9 @@
 import prisma from '~/lib/prisma'
 import { verifyPassword } from '~/lib/password'
 import { generateToken } from '~/lib/jwt'
+import { createLogger } from '~/lib/logger'
+
+const log = createLogger('auth')
 
 export default defineEventHandler(async (event) => {
   try {
@@ -21,6 +24,11 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!user) {
+      log.warning('Login attempt with non-existent user', {
+        email,
+        ip: getClientIP(event),
+        userAgent: getHeader(event, 'user-agent')
+      })
       throw createError({
         statusCode: 401,
         statusMessage: 'Ungültige Anmeldedaten'
@@ -30,6 +38,13 @@ export default defineEventHandler(async (event) => {
     // Prüfe Passwort
     const isValidPassword = await verifyPassword(password, user.password)
     if (!isValidPassword) {
+      log.warning('Login attempt with invalid password', {
+        userId: user.id,
+        username: user.username,
+        email,
+        ip: getClientIP(event),
+        userAgent: getHeader(event, 'user-agent')
+      })
       throw createError({
         statusCode: 401,
         statusMessage: 'Ungültige Anmeldedaten'
@@ -43,6 +58,14 @@ export default defineEventHandler(async (event) => {
       email: user.email
     })
 
+    // Logge erfolgreichen Login
+    log.info('User login successful', {
+      userId: user.id,
+      username: user.username,
+      email: user.email,
+      ip: getClientIP(event)
+    })
+
     return {
       id: user.id,
       email: user.email,
@@ -51,7 +74,12 @@ export default defineEventHandler(async (event) => {
       token
     }
   } catch (error) {
-    console.error('Login error:', error)
+    log.error('API error', {
+      endpoint: '/api/auth/login',
+      method: 'POST',
+      error: error.message,
+      stack: error.stack
+    })
     throw createError({
       statusCode: 500,
       statusMessage: 'Fehler beim Anmelden'

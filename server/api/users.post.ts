@@ -1,6 +1,9 @@
 import prisma from '~/lib/prisma'
 import { hashPassword } from '~/lib/password'
 import { generateToken } from '~/lib/jwt'
+import { createLogger } from '~/lib/logger'
+
+const log = createLogger('user')
 
 export default defineEventHandler(async (event) => {
   try {
@@ -56,6 +59,13 @@ export default defineEventHandler(async (event) => {
       email: user.email
     })
 
+    // Logge erfolgreiche Registrierung
+    log.info('User registration successful', {
+      userId: user.id,
+      username: user.username,
+      email: user.email
+    })
+
     return {
       id: user.id,
       email: user.email,
@@ -64,7 +74,11 @@ export default defineEventHandler(async (event) => {
       token
     }
   } catch (error) {
-    console.error('Error creating user:', error)
+    log.error('Database error', {
+      operation: 'user_create',
+      error: (error as Error).message,
+      stack: (error as Error).stack
+    })
     throw createError({
       statusCode: 500,
       statusMessage: 'Fehler beim Erstellen des Users'

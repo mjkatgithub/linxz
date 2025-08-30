@@ -1,6 +1,7 @@
-import { PrismaClient } from '@prisma/client'
+import prisma from '~/lib/prisma'
+import { createLogger } from '~/lib/logger'
 
-const prisma = new PrismaClient()
+const log = createLogger('api')
 
 export default defineEventHandler(async (event) => {
   try {
@@ -39,6 +40,10 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!user) {
+      // Logge User nicht gefunden (nicht als Error)
+      log.notice('User not found', {
+        username: username as string
+      })
       throw createError({
         statusCode: 404,
         statusMessage: 'User nicht gefunden'
@@ -47,10 +52,15 @@ export default defineEventHandler(async (event) => {
 
     return user
   } catch (error) {
-    console.error('Error fetching user links:', error)
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Fehler beim Abrufen der Links'
-    })
+    // Nur echte Fehler loggen (nicht 404)
+    if ((error as { statusCode?: number }).statusCode !== 404) {
+      log.error('API error', {
+        endpoint: '/api/links',
+        method: 'GET',
+        error: (error as Error).message,
+        stack: (error as Error).stack
+      })
+    }
+    throw error
   }
 }) 
