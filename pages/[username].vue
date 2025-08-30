@@ -38,8 +38,7 @@
         <v-btn
           v-for="link in userData.links"
           :key="link.id"
-          :href="link.url"
-          target="_blank"
+          @click="openLink(link.url)"
           class="mb-3"
           color="primary"
           size="large"
@@ -69,6 +68,12 @@ const { data: userData, pending, error } = await useFetch(`/api/links`, {
   query: { username },
   server: true
 })
+
+// openLink Funktion
+function openLink(url) {
+  // Öffne Link in neuem Tab
+  window.open(url, '_blank', 'noopener,noreferrer')
+}
 
 // SEO Meta Tags
 useHead({

@@ -35,13 +35,17 @@ export default defineEventHandler(async (event) => {
     // Hash das Passwort
     const hashedPassword = await hashPassword(password)
 
+    // Kein Default Avatar - verwende null
+    const defaultAvatar = null
+
     // Erstelle neuen User
     const user = await prisma.user.create({
       data: {
         email,
         username,
         password: hashedPassword,
-        name
+        name,
+        avatar: defaultAvatar
       }
     })
 

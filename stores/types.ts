@@ -5,6 +5,9 @@ export interface User {
   id: string
   username: string
   email: string
+  name?: string
+  bio?: string
+  avatar?: string
   createdAt: Date
   isAuthenticated: boolean
 }
@@ -80,4 +83,14 @@ export interface UpdateLinkRequest {
   description?: string
   isActive?: boolean
   order?: number
+}
+
+// User-Profile-Update-Request
+export interface UpdateProfileRequest {
+  username?: string
+  name?: string
+  bio?: string
+  avatar?: string
+  currentPassword?: string
+  newPassword?: string
 }

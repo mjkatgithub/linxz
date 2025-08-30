@@ -116,9 +116,16 @@ export const useUserStore = defineStore('user', {
       this.isLoading = true
       
       try {
-        // Lade Links über API
-        const response = await $fetch('/api/links', {
-          query: { username: this.currentUser.username }
+        const token = localStorage.getItem('auth-token')
+        if (!token) {
+          throw new Error('Nicht authentifiziert')
+        }
+        
+        // Lade eigene Links über API
+        const response = await $fetch('/api/users/links', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
         })
         
         // Konvertiere API-Response zu Link-Format
@@ -126,7 +133,7 @@ export const useUserStore = defineStore('user', {
           id: link.id.toString(),
           title: link.title,
           url: link.url,
-          description: link.description,
+          description: link.description || undefined,
           isActive: link.isActive,
           order: link.order,
           createdAt: new Date(link.createdAt)
@@ -135,18 +142,7 @@ export const useUserStore = defineStore('user', {
       } catch (error) {
         this.error = 'Fehler beim Laden der Links'
         console.error('Load links error:', error)
-        // Fallback zu Dummy-Daten bei Fehler
-        this.userLinks = [
-          {
-            id: '1',
-            title: 'Meine Website',
-            url: 'https://example.com',
-            description: 'Meine persönliche Website',
-            isActive: true,
-            order: 1,
-            createdAt: new Date()
-          }
-        ]
+        this.userLinks = []
       } finally {
         this.isLoading = false
       }
@@ -199,17 +195,36 @@ export const useUserStore = defineStore('user', {
       this.isLoading = true
       
       try {
-        // TODO: Hier später echte API-Calls machen
-        await new Promise(resolve => setTimeout(resolve, 500))
+        const token = localStorage.getItem('auth-token')
+        if (!token) {
+          throw new Error('Nicht authentifiziert')
+        }
         
+        const response = await $fetch(`/api/links/${linkId}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: updates
+        })
+        
+        // Aktualisiere Link im Store
         const linkIndex = this.userLinks.findIndex(link => link.id === linkId)
         if (linkIndex !== -1) {
-          this.userLinks[linkIndex] = { ...this.userLinks[linkIndex], ...updates }
+          this.userLinks[linkIndex] = {
+            ...this.userLinks[linkIndex],
+            title: response.title,
+            url: response.url,
+            description: response.description || undefined,
+            isActive: response.isActive,
+            order: response.order
+          }
         }
         
       } catch (error) {
         this.error = 'Fehler beim Aktualisieren des Links'
         console.error('Update link error:', error)
+        throw error
       } finally {
         this.isLoading = false
       }
@@ -256,19 +271,90 @@ export const useUserStore = defineStore('user', {
       }
     },
 
+    // User-Profil aktualisieren
+    async updateProfile(profileData: { username?: string; name?: string; bio?: string; avatar?: string; currentPassword?: string; newPassword?: string }) {
+      this.isLoading = true
+      this.error = null
+      
+      try {
+        const token = localStorage.getItem('auth-token')
+        if (!token) {
+          throw new Error('Nicht authentifiziert')
+        }
+        
+        const response = await $fetch('/api/users', {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: profileData
+        })
+        
+        // Aktualisiere User-Info im Store
+        if (this.currentUser) {
+          this.currentUser.username = response.username
+        }
+        
+        return response
+        
+      } catch (error) {
+        this.error = 'Fehler beim Aktualisieren des Profils'
+        console.error('Update profile error:', error)
+        throw error
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    // User-Profil laden
+    async loadProfile() {
+      this.isLoading = true
+      
+      try {
+        const token = localStorage.getItem('auth-token')
+        if (!token) {
+          throw new Error('Nicht authentifiziert')
+        }
+        
+        const response = await $fetch('/api/users/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        
+        return response
+        
+      } catch (error) {
+        this.error = 'Fehler beim Laden des Profils'
+        console.error('Load profile error:', error)
+        throw error
+      } finally {
+        this.isLoading = false
+      }
+    },
+
     // Auto-Login beim App-Start
     async checkAuth() {
       const token = localStorage.getItem('auth-token')
       if (!token) return false
       
       try {
-        // TODO: Token validieren mit API
-        // Für jetzt: Dummy-Check
+        // Lade User-Profil über API
+        const userData = await $fetch('/api/users/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        
+        // Setze User-Info
         this.currentUser = {
-          id: '1',
-          username: 'testuser',
-          email: 'test@example.com',
-          createdAt: new Date(),
+          id: userData.id.toString(),
+          username: userData.username,
+          email: userData.email,
+          name: userData.name,
+          bio: userData.bio,
+          avatar: userData.avatar,
+          createdAt: new Date(userData.createdAt),
           isAuthenticated: true
         }
         
