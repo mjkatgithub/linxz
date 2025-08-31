@@ -43,6 +43,17 @@
       <div class="mt-4 text-center">
         <NuxtLink to="/signup">Noch keinen Account? Jetzt registrieren</NuxtLink>
       </div>
+      
+      <div class="mt-6 text-center">
+        <v-btn
+          variant="text"
+          color="primary"
+          to="/"
+          prepend-icon="mdi-home"
+        >
+          Zur Startseite
+        </v-btn>
+      </div>
     </v-card>
       </v-container>
   </NuxtLayout>

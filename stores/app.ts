@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import type { AppSettings, UIState, Notification } from './types'
 
 // Einfacher Fallback-Logger für Client-Side
 const log = {
@@ -6,7 +7,6 @@ const log = {
     console.error(`[app] ERROR: ${message}`, context)
   }
 }
-import type { AppSettings, UIState, Notification } from './types'
 
 export const useAppStore = defineStore('app', {
   state: () => ({
@@ -30,8 +30,12 @@ export const useAppStore = defineStore('app', {
     // Prüft ob das Theme dunkel ist
     isDarkTheme: (state) => {
       if (state.settings.theme === 'auto') {
-        // Prüfe System-Präferenz
-        return window?.matchMedia('(prefers-color-scheme: dark)')?.matches ?? false
+        // Prüfe System-Präferenz nur auf Client-Side
+        if (import.meta.client) {
+          return window.matchMedia('(prefers-color-scheme: dark)').matches
+        }
+        // Server-Side: Standard auf dark
+        return true
       }
       return state.settings.theme === 'dark'
     },
@@ -45,11 +49,12 @@ export const useAppStore = defineStore('app', {
 
   actions: {
     // Theme ändern
-    setTheme(theme: 'light' | 'dark' | 'auto') {
-      this.settings.theme = theme
-      // TODO: Theme in localStorage speichern
-      localStorage.setItem('app-theme', theme)
-    },
+          setTheme(theme: 'light' | 'dark' | 'auto') {
+        this.settings.theme = theme
+        if (import.meta.client) {
+          localStorage.setItem('app-theme', theme)
+        }
+      },
 
     // Sprache ändern
     setLanguage(language: string) {
@@ -120,10 +125,15 @@ export const useAppStore = defineStore('app', {
 
     // Einstellungen aus localStorage laden
     loadSettings() {
+      if (!import.meta.client) return
+      
       try {
         const theme = localStorage.getItem('app-theme')
         if (theme && ['light', 'dark', 'auto'].includes(theme)) {
           this.settings.theme = theme as 'light' | 'dark' | 'auto'
+        } else {
+          // Standard auf 'auto' wenn nichts gespeichert ist
+          this.settings.theme = 'auto'
         }
 
         const language = localStorage.getItem('app-language')

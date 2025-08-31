@@ -16,6 +16,17 @@
           <h1>Dashboard</h1>
           <p class="text-h6">Willkommen, {{ userStore.username }}!</p>
           <p v-if="userStore.currentUser?.name" class="text-body-1">{{ userStore.currentUser.name }}</p>
+          
+          <div class="mt-4">
+            <v-btn
+              variant="text"
+              color="primary"
+              to="/"
+              prepend-icon="mdi-home"
+            >
+              Zur Startseite
+            </v-btn>
+          </div>
         </div>
 
         <!-- Links Übersicht -->
@@ -44,6 +55,7 @@
                 :key="link.id"
                 :title="link.title"
                 :subtitle="link.description"
+                style="cursor: pointer;"
                 @click="openLink(link.url)"
               >
                 <template #prepend>

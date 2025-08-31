@@ -44,6 +44,7 @@
            size="large"
            block
            variant="elevated"
+           type="button"
            @click="openLink(link.url)"
          >
           <v-icon v-if="link.icon" class="mr-2">{{ link.icon }}</v-icon>
@@ -55,6 +56,18 @@
       <div v-else class="text-center py-8">
         <v-icon size="48" class="mb-4">mdi-link-off</v-icon>
         <p>Noch keine Links vorhanden</p>
+      </div>
+      
+      <!-- Link zur Startseite -->
+      <div class="text-center mt-8">
+        <v-btn
+          variant="outlined"
+          color="primary"
+          to="/"
+          prepend-icon="mdi-home"
+        >
+          Erstelle deine eigene Linksammlung
+        </v-btn>
       </div>
     </div>
       </v-container>
