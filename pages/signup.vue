@@ -1,5 +1,6 @@
 <template>
-  <v-container class="fill-height d-flex flex-column align-center justify-center">
+  <NuxtLayout>
+    <v-container class="fill-height d-flex flex-column align-center justify-center">
     <v-card width="400" class="pa-6">
       <h2 class="mb-6 text-center">Registrierung</h2>
       <v-form @submit.prevent="handleSignup">
@@ -42,7 +43,8 @@
         <NuxtLink to="/login">Bereits einen Account? Jetzt anmelden</NuxtLink>
       </div>
     </v-card>
-  </v-container>
+      </v-container>
+  </NuxtLayout>
 </template>
 
 <script setup>

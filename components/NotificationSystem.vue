@@ -1,50 +1,50 @@
 <template>
-  <v-snackbar
-    v-for="notification in appStore.notifications"
-    :key="notification.id"
-    :model-value="true"
-    :color="getNotificationColor(notification.type)"
-    :timeout="notification.timeout || 5000"
-    @update:model-value="appStore.removeNotification(notification.id)"
-  >
-    <div class="d-flex align-center">
-      <v-icon class="mr-2">{{ getNotificationIcon(notification.type) }}</v-icon>
-      {{ notification.message }}
-    </div>
-    
-    <template #actions>
-      <v-btn
-        icon="mdi-close"
-        variant="text"
-        size="small"
-        @click="appStore.removeNotification(notification.id)"
-      />
-    </template>
-  </v-snackbar>
+  <div>
+    <!-- Toastr wird automatisch von vue-toastification gerendert -->
+  </div>
 </template>
 
 <script setup>
 import { useAppStore } from '~/stores/app'
+import { useToast } from 'vue-toastification'
 
 const appStore = useAppStore()
+const toast = useToast()
 
-function getNotificationColor(type) {
-  switch (type) {
-    case 'success': return 'success'
-    case 'error': return 'error'
-    case 'warning': return 'warning'
-    case 'info': return 'info'
-    default: return 'info'
+// Watch für neue Notifications und zeige sie als Toast an
+watch(() => appStore.notifications, (newNotifications, oldNotifications) => {
+  if (newNotifications.length > (oldNotifications?.length || 0)) {
+    const latestNotification = newNotifications[newNotifications.length - 1]
+    
+    // Zeige Toast basierend auf dem Typ
+    switch (latestNotification.type) {
+      case 'success':
+        toast.success(latestNotification.message, {
+          timeout: latestNotification.timeout || 5000
+        })
+        break
+      case 'error':
+        toast.error(latestNotification.message, {
+          timeout: latestNotification.timeout || 8000
+        })
+        break
+      case 'warning':
+        toast.warning(latestNotification.message, {
+          timeout: latestNotification.timeout || 6000
+        })
+        break
+      case 'info':
+      default:
+        toast.info(latestNotification.message, {
+          timeout: latestNotification.timeout || 5000
+        })
+        break
+    }
+    
+    // Entferne die Notification aus dem Store nach kurzer Verzögerung
+    setTimeout(() => {
+      appStore.removeNotification(latestNotification.id)
+    }, 100)
   }
-}
-
-function getNotificationIcon(type) {
-  switch (type) {
-    case 'success': return 'mdi-check-circle'
-    case 'error': return 'mdi-alert-circle'
-    case 'warning': return 'mdi-alert'
-    case 'info': return 'mdi-information'
-    default: return 'mdi-information'
-  }
-}
+}, { deep: true })
 </script>

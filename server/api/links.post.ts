@@ -1,5 +1,8 @@
 import prisma from '~/lib/prisma'
 import { requireAuth } from '~/lib/auth'
+import { createLogger } from '~/lib/logger'
+
+const log = createLogger('api')
 
 export default defineEventHandler(async (event) => {
   try {
@@ -39,7 +42,7 @@ export default defineEventHandler(async (event) => {
       createdAt: link.createdAt
     }
   } catch (error) {
-    console.error('Error creating link:', error)
+    log.error('Error creating link', { error: (error as Error).message })
     throw createError({
       statusCode: 500,
       statusMessage: 'Fehler beim Erstellen des Links'

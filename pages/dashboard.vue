@@ -1,5 +1,6 @@
 <template>
-  <v-container class="py-10">
+  <NuxtLayout>
+    <v-container class="py-10">
     <v-row justify="center">
       <v-col cols="12" md="8">
         <!-- Header -->
@@ -237,7 +238,8 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-container>
+      </v-container>
+  </NuxtLayout>
 </template>
 
 <script setup>

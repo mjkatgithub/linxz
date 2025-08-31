@@ -1,5 +1,6 @@
 <template>
-  <v-container class="py-10 d-flex flex-column align-center">
+  <NuxtLayout>
+    <v-container class="py-10 d-flex flex-column align-center">
     <!-- Loading State -->
     <div v-if="pending" class="text-center py-8">
       <v-progress-circular indeterminate size="64" />
@@ -35,16 +36,16 @@
 
       <!-- Links -->
       <div v-if="userData.links && userData.links.length > 0">
-        <v-btn
-          v-for="link in userData.links"
-          :key="link.id"
-          @click="openLink(link.url)"
-          class="mb-3"
-          color="primary"
-          size="large"
-          block
-          variant="elevated"
-        >
+                 <v-btn
+           v-for="link in userData.links"
+           :key="link.id"
+           class="mb-3"
+           color="primary"
+           size="large"
+           block
+           variant="elevated"
+           @click="openLink(link.url)"
+         >
           <v-icon v-if="link.icon" class="mr-2">{{ link.icon }}</v-icon>
           {{ link.title }}
         </v-btn>
@@ -56,7 +57,8 @@
         <p>Noch keine Links vorhanden</p>
       </div>
     </div>
-  </v-container>
+      </v-container>
+  </NuxtLayout>
 </template>
 
 <script setup>
@@ -75,7 +77,7 @@ try {
   })
   userData.value = response
 } catch (err) {
-  console.log(`User "${username}" nicht gefunden`)
+  // User nicht gefunden - wird als 404 behandelt
   error.value = err
 } finally {
   pending.value = false

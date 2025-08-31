@@ -1,5 +1,19 @@
 import { defineStore } from 'pinia'
 import type { User, Link, CreateLinkRequest, UpdateLinkRequest } from './types'
+import { useToast } from 'vue-toastification'
+
+// Einfacher Fallback-Logger für Client-Side
+const log = {
+  error: (message: string, context?: Record<string, unknown>) => {
+    console.error(`[user] ERROR: ${message}`, context)
+  },
+  info: (message: string, context?: Record<string, unknown>) => {
+    console.info(`[user] INFO: ${message}`, context)
+  },
+  warning: (message: string, context?: Record<string, unknown>) => {
+    console.warn(`[user] WARNING: ${message}`, context)
+  }
+}
 
 // Der Store für Benutzer und deren Links
 export const useUserStore = defineStore('user', {
@@ -57,9 +71,18 @@ export const useUserStore = defineStore('user', {
         // Lade die Links des Benutzers
         await this.loadUserLinks()
         
+        // Toastr Success
+        const toast = useToast()
+        toast.success('Erfolgreich angemeldet!')
+        
       } catch (error) {
         this.error = 'Login fehlgeschlagen'
-        console.error('Login error:', error)
+        log.error('Login failed', { error: (error as Error).message })
+        
+        // Toastr Error
+        const toast = useToast()
+        toast.error('Login fehlgeschlagen')
+        
         throw error
       } finally {
         this.isLoading = false
@@ -89,11 +112,20 @@ export const useUserStore = defineStore('user', {
           isAuthenticated: true
         }
         
+        // Toastr Success
+        const toast = useToast()
+        toast.success('Registrierung erfolgreich!')
+        
         return response
         
       } catch (error) {
         this.error = 'Registrierung fehlgeschlagen'
-        console.error('Signup error:', error)
+        log.error('Signup failed', { error: (error as Error).message })
+        
+        // Toastr Error
+        const toast = useToast()
+        toast.error('Registrierung fehlgeschlagen')
+        
         throw error
       } finally {
         this.isLoading = false
@@ -141,7 +173,7 @@ export const useUserStore = defineStore('user', {
         
       } catch (error) {
         this.error = 'Fehler beim Laden der Links'
-        console.error('Load links error:', error)
+        log.error('Load links failed', { error: (error as Error).message })
         this.userLinks = []
       } finally {
         this.isLoading = false
@@ -181,9 +213,18 @@ export const useUserStore = defineStore('user', {
         
         this.userLinks.push(newLink)
         
+        // Toastr Success
+        const toast = useToast()
+        toast.success('Link erfolgreich hinzugefügt!')
+        
       } catch (error) {
         this.error = 'Fehler beim Hinzufügen des Links'
-        console.error('Add link error:', error)
+        log.error('Add link failed', { error: (error as Error).message })
+        
+        // Toastr Error
+        const toast = useToast()
+        toast.error('Fehler beim Hinzufügen des Links')
+        
         throw error
       } finally {
         this.isLoading = false
@@ -221,9 +262,18 @@ export const useUserStore = defineStore('user', {
           }
         }
         
+        // Toastr Success
+        const toast = useToast()
+        toast.success('Link erfolgreich aktualisiert!')
+        
       } catch (error) {
         this.error = 'Fehler beim Aktualisieren des Links'
-        console.error('Update link error:', error)
+        log.error('Update link failed', { error: (error as Error).message })
+        
+        // Toastr Error
+        const toast = useToast()
+        toast.error('Fehler beim Aktualisieren des Links')
+        
         throw error
       } finally {
         this.isLoading = false
@@ -240,9 +290,17 @@ export const useUserStore = defineStore('user', {
         
         this.userLinks = this.userLinks.filter(link => link.id !== linkId)
         
+        // Toastr Success
+        const toast = useToast()
+        toast.success('Link erfolgreich gelöscht!')
+        
       } catch (error) {
         this.error = 'Fehler beim Löschen des Links'
-        console.error('Delete link error:', error)
+        log.error('Delete link failed', { error: (error as Error).message })
+        
+        // Toastr Error
+        const toast = useToast()
+        toast.error('Fehler beim Löschen des Links')
       } finally {
         this.isLoading = false
       }
@@ -265,7 +323,7 @@ export const useUserStore = defineStore('user', {
         
       } catch (error) {
         this.error = 'Fehler beim Neuordnen der Links'
-        console.error('Reorder links error:', error)
+        log.error('Reorder links failed', { error: (error as Error).message })
       } finally {
         this.isLoading = false
       }
@@ -295,11 +353,20 @@ export const useUserStore = defineStore('user', {
           this.currentUser.username = response.username
         }
         
+        // Toastr Success
+        const toast = useToast()
+        toast.success('Profil erfolgreich aktualisiert!')
+        
         return response
         
       } catch (error) {
         this.error = 'Fehler beim Aktualisieren des Profils'
-        console.error('Update profile error:', error)
+        log.error('Update profile failed', { error: (error as Error).message })
+        
+        // Toastr Error
+        const toast = useToast()
+        toast.error('Fehler beim Aktualisieren des Profils')
+        
         throw error
       } finally {
         this.isLoading = false
@@ -326,7 +393,7 @@ export const useUserStore = defineStore('user', {
         
       } catch (error) {
         this.error = 'Fehler beim Laden des Profils'
-        console.error('Load profile error:', error)
+        log.error('Load profile failed', { error: (error as Error).message })
         throw error
       } finally {
         this.isLoading = false
@@ -351,9 +418,9 @@ export const useUserStore = defineStore('user', {
           id: userData.id.toString(),
           username: userData.username,
           email: userData.email,
-          name: userData.name,
-          bio: userData.bio,
-          avatar: userData.avatar,
+          name: userData.name || undefined,
+          bio: userData.bio || undefined,
+          avatar: userData.avatar || undefined,
           createdAt: new Date(userData.createdAt),
           isAuthenticated: true
         }
@@ -362,7 +429,7 @@ export const useUserStore = defineStore('user', {
         return true
         
       } catch (error) {
-        console.error('Auth check failed:', error)
+        log.error('Auth check failed', { error: (error as Error).message })
         localStorage.removeItem('auth-token')
         return false
       }

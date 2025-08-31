@@ -1,45 +1,63 @@
-import winston from 'winston'
-import path from 'path'
+// Nur auf Server-Side verwenden
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, import/no-mutable-exports
+let logger: any = null
 
-// Syslog Log Levels (RFC 3164)
-const syslogLevels = {
-  emerg: 0,   // System is unusable
-  alert: 1,   // Action must be taken immediately
-  crit: 2,    // Critical conditions
-  error: 3,   // Error conditions
-  warning: 4, // Warning conditions
-  notice: 5,  // Normal but significant condition
-  info: 6,    // Informational messages
-  debug: 7    // Debug-level messages
+// Server-Side Logger initialisieren
+function initLogger() {
+  if (import.meta.server && !logger) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const winston = require('winston')
+      
+      // Syslog Log Levels (RFC 3164)
+      const syslogLevels = {
+        emerg: 0,   // System is unusable
+        alert: 1,   // Action must be taken immediately
+        crit: 2,    // Critical conditions
+        error: 3,   // Error conditions
+        warning: 4, // Warning conditions
+        notice: 5,  // Normal but significant condition
+        info: 6,    // Informational messages
+        debug: 7    // Debug-level messages
+      }
+
+      // Logger-Konfiguration
+      logger = winston.createLogger({
+        levels: syslogLevels,
+        level: process.env.LOG_LEVEL || 'info',
+        defaultMeta: { service: 'linxz' },
+        transports: [
+          // Console Transport mit Pretty Print
+          new winston.transports.Console({
+            format: winston.format.combine(
+              winston.format.timestamp({
+                format: 'YYYY-MM-DD HH:mm:ss'
+              }),
+              winston.format.errors({ stack: false }),
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              winston.format.printf(({ timestamp, level, message, ...meta }: any) => {
+                // Erste Zeile: Timestamp + Level + Message
+                const firstLine = `${timestamp} ${level}: ${message}`
+                
+                // Zweite Zeile: Strukturierte Daten (ohne Stack)
+                const { stack, ...contextData } = meta
+                const secondLine = JSON.stringify(contextData, null, 2)
+                
+                return `${firstLine}\n${secondLine}`
+              })
+            )
+          })
+        ]
+      })
+    } catch {
+      // Fallback für Client-Side
+      console.warn('Winston logger not available on client-side')
+    }
+  }
 }
 
-// Logger-Konfiguration
-const logger = winston.createLogger({
-  levels: syslogLevels,
-  level: process.env.LOG_LEVEL || 'info',
-  defaultMeta: { service: 'linxz' },
-  transports: [
-    // Console Transport mit Pretty Print
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.timestamp({
-          format: 'YYYY-MM-DD HH:mm:ss'
-        }),
-        winston.format.errors({ stack: false }),
-        winston.format.printf(({ timestamp, level, message, ...meta }) => {
-          // Erste Zeile: Timestamp + Level + Message
-          const firstLine = `${timestamp} ${level}: ${message}`
-          
-          // Zweite Zeile: Strukturierte Daten (ohne Stack)
-          const { stack, ...contextData } = meta
-          const secondLine = JSON.stringify(contextData, null, 2)
-          
-          return `${firstLine}\n${secondLine}`
-        })
-      )
-    })
-  ]
-})
+// Logger initialisieren
+initLogger()
 
 // Automatische Datei-Erkennung (ähnlich wie Monolog Processors)
 function getCallerInfo(): { file: string; line: number } {
@@ -57,7 +75,7 @@ function getCallerInfo(): { file: string; line: number } {
         const lineNumber = parseInt(match[2] || match[4])
         if (filePath) {
           // Extrahiere nur den Dateinamen
-          const fileName = path.basename(filePath)
+          const fileName = filePath.split('/').pop() || filePath.split('\\').pop() || 'unknown'
           return { file: fileName, line: lineNumber }
         }
       }
@@ -76,6 +94,12 @@ class ChannelLogger {
   }
 
   private log(level: string, message: string, context?: Record<string, unknown>) {
+    if (!logger) {
+      // Fallback für Client-Side
+      console.log(`[${this.channel}] ${level.toUpperCase()}: ${message}`, context)
+      return
+    }
+    
     const callerInfo = getCallerInfo()
     const meta: Record<string, unknown> = { 
       channel: this.channel,

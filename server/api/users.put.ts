@@ -1,5 +1,8 @@
 import prisma from '~/lib/prisma'
 import { requireAuth } from '~/lib/auth'
+import { createLogger } from '~/lib/logger'
+
+const log = createLogger('api')
 import { hashPassword } from '~/lib/password'
 
 export default defineEventHandler(async (event) => {
@@ -85,7 +88,7 @@ export default defineEventHandler(async (event) => {
 
     return updatedUser
   } catch (error) {
-    console.error('Error updating user:', error)
+    log.error('Error updating user', { error: (error as Error).message })
     throw createError({
       statusCode: 500,
       statusMessage: 'Fehler beim Aktualisieren des Users'

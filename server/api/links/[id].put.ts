@@ -1,5 +1,8 @@
 import prisma from '~/lib/prisma'
 import { requireAuth } from '~/lib/auth'
+import { createLogger } from '~/lib/logger'
+
+const log = createLogger('api')
 
 export default defineEventHandler(async (event) => {
   try {
@@ -47,7 +50,7 @@ export default defineEventHandler(async (event) => {
       createdAt: updatedLink.createdAt
     }
   } catch (error) {
-    console.error('Error updating link:', error)
+    log.error('Error updating link', { error: (error as Error).message })
     throw createError({
       statusCode: 500,
       statusMessage: 'Fehler beim Aktualisieren des Links'

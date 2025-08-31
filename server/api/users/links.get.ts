@@ -1,5 +1,8 @@
 import prisma from '~/lib/prisma'
 import { requireAuth } from '~/lib/auth'
+import { createLogger } from '~/lib/logger'
+
+const log = createLogger('api')
 
 export default defineEventHandler(async (event) => {
   try {
@@ -24,7 +27,7 @@ export default defineEventHandler(async (event) => {
 
     return { links }
   } catch (error) {
-    console.error('Error fetching user links:', error)
+    log.error('Error fetching user links', { error: (error as Error).message })
     throw createError({
       statusCode: 500,
       statusMessage: 'Fehler beim Abrufen der Links'

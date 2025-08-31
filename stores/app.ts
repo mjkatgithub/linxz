@@ -1,4 +1,11 @@
 import { defineStore } from 'pinia'
+
+// Einfacher Fallback-Logger für Client-Side
+const log = {
+  error: (message: string, context?: Record<string, unknown>) => {
+    console.error(`[app] ERROR: ${message}`, context)
+  }
+}
 import type { AppSettings, UIState, Notification } from './types'
 
 export const useAppStore = defineStore('app', {
@@ -129,7 +136,7 @@ export const useAppStore = defineStore('app', {
           this.settings.notifications = notifications === 'true'
         }
       } catch (error) {
-        console.error('Fehler beim Laden der Einstellungen:', error)
+        log.error('Failed to load settings', { error: (error as Error).message })
       }
     },
 

@@ -1,4 +1,7 @@
 import jwt from 'jsonwebtoken'
+import { createLogger } from './logger'
+
+const log = createLogger('auth')
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production'
 
@@ -16,7 +19,7 @@ export function verifyToken(token: string): JWTPayload | null {
   try {
     return jwt.verify(token, JWT_SECRET) as JWTPayload
   } catch (error) {
-    console.error('JWT verification failed:', error)
+    log.error('JWT verification failed', { error: (error as Error).message })
     return null
   }
 }
