@@ -23,4 +23,7 @@ logs
 .env.*
 !.env.example
 
+# Test coverage
+coverage/
+
 /generated/prisma
