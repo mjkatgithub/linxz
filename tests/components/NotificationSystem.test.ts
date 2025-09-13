@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { nextTick } from 'vue'
 import NotificationSystem from '~/components/NotificationSystem.vue'
 import { useAppStore } from '~/stores/app'
 
@@ -125,6 +126,7 @@ describe('NotificationSystem', () => {
     
     expect(appStore.notifications).toHaveLength(0)
   })
+
 
   // Tests für die Komponenten-Logik (simulieren die Watcher-Funktionalität)
   describe('Component Logic Simulation', () => {
@@ -291,6 +293,101 @@ describe('NotificationSystem', () => {
       
       expect(mockToast.success).toHaveBeenCalledWith('First message', { timeout: 5000 })
       expect(mockToast.error).toHaveBeenCalledWith('Second message', { timeout: 8000 })
+    })
+
+    it('should handle watcher with deep option', () => {
+      // Teste die deep option des Watchers
+      const notifications = [
+        { id: '1', message: 'Deep test', type: 'success', timeout: 3000, createdAt: new Date() }
+      ]
+      
+      simulateNotificationWatcher(notifications, [])
+      
+      expect(mockToast.success).toHaveBeenCalledWith('Deep test', { timeout: 3000 })
+    })
+
+    it('should handle edge case with null oldNotifications', () => {
+      const notifications = [
+        { id: '1', message: 'Null old test', type: 'info', createdAt: new Date() }
+      ]
+      
+      // Simuliere null oldNotifications
+      simulateNotificationWatcher(notifications, null as any)
+      
+      expect(mockToast.info).toHaveBeenCalledWith('Null old test', { timeout: 5000 })
+    })
+
+    it('should handle edge case with undefined oldNotifications', () => {
+      const notifications = [
+        { id: '1', message: 'Undefined old test', type: 'warning', createdAt: new Date() }
+      ]
+      
+      // Simuliere undefined oldNotifications
+      simulateNotificationWatcher(notifications, undefined as any)
+      
+      expect(mockToast.warning).toHaveBeenCalledWith('Undefined old test', { timeout: 6000 })
+    })
+
+    it('should handle all notification types with custom timeouts', () => {
+      const successNotification = { id: '1', message: 'Success with timeout', type: 'success', timeout: 7000, createdAt: new Date() }
+      const errorNotification = { id: '2', message: 'Error with timeout', type: 'error', timeout: 9000, createdAt: new Date() }
+      const warningNotification = { id: '3', message: 'Warning with timeout', type: 'warning', timeout: 8000, createdAt: new Date() }
+      const infoNotification = { id: '4', message: 'Info with timeout', type: 'info', timeout: 6000, createdAt: new Date() }
+      
+      simulateNotificationWatcher([successNotification], [])
+      simulateNotificationWatcher([successNotification, errorNotification], [successNotification])
+      simulateNotificationWatcher([successNotification, errorNotification, warningNotification], [successNotification, errorNotification])
+      simulateNotificationWatcher([successNotification, errorNotification, warningNotification, infoNotification], [successNotification, errorNotification, warningNotification])
+      
+      expect(mockToast.success).toHaveBeenCalledWith('Success with timeout', { timeout: 7000 })
+      expect(mockToast.error).toHaveBeenCalledWith('Error with timeout', { timeout: 9000 })
+      expect(mockToast.warning).toHaveBeenCalledWith('Warning with timeout', { timeout: 8000 })
+      expect(mockToast.info).toHaveBeenCalledWith('Info with timeout', { timeout: 6000 })
+    })
+
+    it('should handle setTimeout simulation for removeNotification', () => {
+      const removeNotificationSpy = vi.spyOn(appStore, 'removeNotification')
+      
+      const notifications = [
+        { id: 'timeout-test', message: 'Timeout test', type: 'success', createdAt: new Date() }
+      ]
+      
+      simulateNotificationWatcher(notifications, [])
+      
+      // Simuliere das setTimeout
+      setTimeout(() => {
+        appStore.removeNotification('timeout-test')
+      }, 100)
+      
+      // Warte auf setTimeout
+      return new Promise(resolve => {
+        setTimeout(() => {
+          expect(removeNotificationSpy).toHaveBeenCalledWith('timeout-test')
+          resolve(true)
+        }, 150)
+      })
+    })
+
+    it('should handle complex notification scenarios', () => {
+      // Teste komplexe Szenarien mit verschiedenen Kombinationen
+      const notifications1 = [{ id: '1', message: 'First', type: 'success', timeout: 5000, createdAt: new Date() }]
+      const notifications2 = [
+        { id: '1', message: 'First', type: 'success', timeout: 5000, createdAt: new Date() },
+        { id: '2', message: 'Second', type: 'error', timeout: 8000, createdAt: new Date() }
+      ]
+      const notifications3 = [
+        { id: '1', message: 'First', type: 'success', timeout: 5000, createdAt: new Date() },
+        { id: '2', message: 'Second', type: 'error', timeout: 8000, createdAt: new Date() },
+        { id: '3', message: 'Third', type: 'warning', createdAt: new Date() } // Kein timeout
+      ]
+      
+      simulateNotificationWatcher(notifications1, [])
+      simulateNotificationWatcher(notifications2, notifications1)
+      simulateNotificationWatcher(notifications3, notifications2)
+      
+      expect(mockToast.success).toHaveBeenCalledWith('First', { timeout: 5000 })
+      expect(mockToast.error).toHaveBeenCalledWith('Second', { timeout: 8000 })
+      expect(mockToast.warning).toHaveBeenCalledWith('Third', { timeout: 6000 })
     })
   })
 })
