@@ -161,8 +161,7 @@ describe('NotificationSystem', () => {
         // Simuliere das setTimeout für removeNotification
         setTimeout(() => {
           // Simuliere removeNotification call
-          const removeNotificationSpy = vi.spyOn(appStore, 'removeNotification')
-          removeNotificationSpy(latestNotification.id)
+          appStore.removeNotification(latestNotification.id)
         }, 100)
       }
     }
