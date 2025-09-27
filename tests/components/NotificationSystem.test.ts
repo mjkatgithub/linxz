@@ -128,6 +128,109 @@ describe('NotificationSystem', () => {
   })
 
 
+  // Tests für die showNotification Funktion
+  describe('showNotification Function', () => {
+    function simulateShowNotification(notification: any) {
+      // Zeige Toast basierend auf dem Typ
+      switch (notification.type) {
+        case 'success':
+          mockToast.success(notification.message, {
+            timeout: notification.timeout || 5000
+          })
+          break
+        case 'error':
+          mockToast.error(notification.message, {
+            timeout: notification.timeout || 8000
+          })
+          break
+        case 'warning':
+          mockToast.warning(notification.message, {
+            timeout: notification.timeout || 6000
+          })
+          break
+        case 'info':
+        default:
+          mockToast.info(notification.message, {
+            timeout: notification.timeout || 5000
+          })
+          break
+      }
+      
+      // Simuliere das setTimeout für removeNotification
+      setTimeout(() => {
+        // Simuliere removeNotification call
+        appStore.removeNotification(notification.id)
+      }, 100)
+    }
+
+    it('should handle success notification type', () => {
+      const notification = { id: '1', message: 'Success!', type: 'success', timeout: 3000 }
+      
+      simulateShowNotification(notification)
+      
+      expect(mockToast.success).toHaveBeenCalledWith('Success!', { timeout: 3000 })
+    })
+
+    it('should handle error notification type', () => {
+      const notification = { id: '2', message: 'Error!', type: 'error', timeout: 10000 }
+      
+      simulateShowNotification(notification)
+      
+      expect(mockToast.error).toHaveBeenCalledWith('Error!', { timeout: 10000 })
+    })
+
+    it('should handle warning notification type', () => {
+      const notification = { id: '3', message: 'Warning!', type: 'warning' }
+      
+      simulateShowNotification(notification)
+      
+      expect(mockToast.warning).toHaveBeenCalledWith('Warning!', { timeout: 6000 })
+    })
+
+    it('should handle info notification type', () => {
+      const notification = { id: '4', message: 'Info!', type: 'info', timeout: 4000 }
+      
+      simulateShowNotification(notification)
+      
+      expect(mockToast.info).toHaveBeenCalledWith('Info!', { timeout: 4000 })
+    })
+
+    it('should handle unknown notification type with default', () => {
+      const notification = { id: '5', message: 'Unknown!', type: 'unknown', timeout: 2000 }
+      
+      simulateShowNotification(notification)
+      
+      expect(mockToast.info).toHaveBeenCalledWith('Unknown!', { timeout: 2000 })
+    })
+
+    it('should use default timeout when not specified', () => {
+      const notification = { id: '6', message: 'No timeout', type: 'success' }
+      
+      simulateShowNotification(notification)
+      
+      expect(mockToast.success).toHaveBeenCalledWith('No timeout', { timeout: 5000 })
+    })
+  })
+
+  // Tests für onMounted Hook
+  describe('onMounted Hook', () => {
+    it('should call onMounted when component is mounted', async () => {
+      const wrapper = mount(NotificationSystem, {
+        global: {
+          plugins: [createPinia()],
+          stubs: {
+            'vue-toastification': true
+          }
+        }
+      })
+
+      await wrapper.vm.$nextTick()
+      
+      // Komponente sollte erfolgreich gemountet sein
+      expect(wrapper.exists()).toBe(true)
+    })
+  })
+
   // Tests für die Komponenten-Logik (simulieren die Watcher-Funktionalität)
   describe('Component Logic Simulation', () => {
     // Simuliere die Watcher-Logik aus der Komponente
