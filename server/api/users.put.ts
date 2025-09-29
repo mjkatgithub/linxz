@@ -1,9 +1,10 @@
 import prisma from '~/lib/prisma'
 import { requireAuth } from '~/lib/auth'
 import { createLogger } from '~/lib/logger'
+import { readBody, createError } from 'h3'
+import { hashPassword, verifyPassword } from '~/lib/password'
 
 const log = createLogger('api')
-import { hashPassword } from '~/lib/password'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -51,7 +52,6 @@ export default defineEventHandler(async (event) => {
       }
       
       // Prüfe aktuelles Passwort
-      const { verifyPassword } = await import('~/lib/password')
       const isValidPassword = await verifyPassword(currentPassword, currentUser.password)
       
       if (!isValidPassword) {

@@ -1,6 +1,7 @@
 import prisma from '~/lib/prisma'
 import { requireAuth } from '~/lib/auth'
 import { createLogger } from '~/lib/logger'
+import { getRouterParam, readBody, createError } from 'h3'
 
 const log = createLogger('api')
 
@@ -9,7 +10,14 @@ export default defineEventHandler(async (event) => {
     // Authentifizierung erforderlich
     const user = requireAuth(event)
     
-    const linkId = parseInt(getRouterParam(event, 'id'))
+    const idParam = getRouterParam(event, 'id')
+    if (!idParam) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Missing route param id'
+      })
+    }
+    const linkId = parseInt(idParam, 10)
     const body = await readBody(event)
     const { title, url, description, isActive, order } = body
 

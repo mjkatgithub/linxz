@@ -1,13 +1,9 @@
 import { verifyToken, extractTokenFromHeader } from './jwt'
 import type { JWTPayload } from './jwt'
+import { getHeader, createError } from 'h3'
+import type { H3Event } from 'h3'
 
-export interface AuthenticatedEvent extends any {
-  context: {
-    user: JWTPayload
-  }
-}
-
-export function requireAuth(event: any): JWTPayload {
+export function requireAuth(event: H3Event): JWTPayload {
   const authHeader = getHeader(event, 'authorization')
   const token = extractTokenFromHeader(authHeader)
   
@@ -32,7 +28,7 @@ export function requireAuth(event: any): JWTPayload {
   return payload
 }
 
-export function optionalAuth(event: any): JWTPayload | null {
+export function optionalAuth(event: H3Event): JWTPayload | null {
   try {
     return requireAuth(event)
   } catch {

@@ -63,7 +63,8 @@ export default defineConfig({
       '~': resolve(__dirname, '.'),
       '@': resolve(__dirname, '.'),
       '~~': resolve(__dirname, '.'),
-      '@@': resolve(__dirname, '.')
+      '@@': resolve(__dirname, '.'),
+      '#imports': resolve(__dirname, 'tests/mocks/nuxt-imports.ts')
     }
   }
 })

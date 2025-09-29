@@ -43,6 +43,12 @@ vi.mock('#app', () => ({
   }))
 }))
 
+
+const defineNuxtPluginMock = vi.fn((plugin: any) => plugin)
+;(globalThis as any).defineNuxtPlugin = defineNuxtPluginMock
+const useHeadMock = vi.fn()
+;(globalThis as any).useHead = useHeadMock
+
 // Mock Prisma
 vi.mock('~/lib/prisma', () => ({
   default: {

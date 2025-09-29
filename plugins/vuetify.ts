@@ -1,7 +1,7 @@
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
-import { useHead } from '#imports'
+import { defineNuxtPlugin, useHead } from '#imports'
 import 'vuetify/styles'
 import '@mdi/font/css/materialdesignicons.css'
 
