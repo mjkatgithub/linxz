@@ -2,6 +2,20 @@ import { defineStore } from 'pinia'
 import type { User, Link, CreateLinkRequest, UpdateLinkRequest } from './types'
 import { useToast } from 'vue-toastification'
 
+interface UserLinksApiLink {
+  id: number | string
+  title: string
+  url: string
+  description: string | null
+  isActive: boolean
+  order: number
+  createdAt: string | Date
+}
+
+interface UserLinksResponse {
+  links: UserLinksApiLink[]
+}
+
 // Einfacher Fallback-Logger für Client-Side
 const log = {
   error: (message: string, context?: Record<string, unknown>) => {
@@ -143,14 +157,14 @@ export const useUserStore = defineStore('user', {
         }
         
         // Lade eigene Links über API
-        const response = await $fetch('/api/users/links', {
+        const response = await $fetch<UserLinksResponse>('/api/users/links', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         })
         
         // Konvertiere API-Response zu Link-Format
-        this.userLinks = response.links.map((link: any) => ({
+        this.userLinks = response.links.map((link: UserLinksApiLink) => ({
           id: link.id.toString(),
           title: link.title,
           url: link.url,
