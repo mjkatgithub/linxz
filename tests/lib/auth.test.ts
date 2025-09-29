@@ -2,15 +2,38 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock Nuxt functions
 const mockGetHeader = vi.fn()
-const mockCreateError = vi.fn()
+const mockCreateError = vi.fn((error: any) => {
+  const err = new Error(error?.statusMessage ?? 'Auth error')
+  return Object.assign(err, error)
+})
 
 // Mock JWT functions
 const mockExtractTokenFromHeader = vi.fn()
 const mockVerifyToken = vi.fn()
 
-// Mock Nuxt globals
-vi.stubGlobal('getHeader', mockGetHeader)
-vi.stubGlobal('createError', mockCreateError)
+// Mock h3 module
+vi.mock('h3', () => ({
+  getHeader: mockGetHeader,
+  createError: mockCreateError
+}))
+
+// Mock H3Event type
+const createMockEvent = (context: any = {}) => ({
+  __is_event__: true,
+  node: {},
+  _handled: false,
+  _onBeforeResponseCalled: false,
+  _onAfterResponseCalled: false,
+  _onErrorCalled: false,
+  _onResponseCalled: false,
+  method: 'GET',
+  path: '/',
+  headers: {},
+  url: 'http://localhost/',
+  query: {},
+  body: null,
+  context
+} as any)
 
 // Mock JWT module
 vi.mock('~/lib/jwt', () => ({
@@ -31,9 +54,7 @@ describe('Auth Utils', () => {
         email: 'test@example.com'
       }
 
-      const mockEvent = {
-        context: {}
-      }
+      const mockEvent = createMockEvent()
 
       mockGetHeader.mockReturnValue('Bearer valid.token')
       mockExtractTokenFromHeader.mockReturnValue('valid.token')
@@ -51,9 +72,7 @@ describe('Auth Utils', () => {
     })
 
     it('should throw error when no authorization header', async () => {
-      const mockEvent = {
-        context: {}
-      }
+      const mockEvent = createMockEvent()
 
       mockGetHeader.mockReturnValue(undefined)
       mockExtractTokenFromHeader.mockReturnValue(null)
@@ -68,9 +87,7 @@ describe('Auth Utils', () => {
     })
 
     it('should throw error when token is invalid', async () => {
-      const mockEvent = {
-        context: {}
-      }
+      const mockEvent = createMockEvent()
 
       mockGetHeader.mockReturnValue('Bearer invalid.token')
       mockExtractTokenFromHeader.mockReturnValue('invalid.token')
@@ -86,9 +103,7 @@ describe('Auth Utils', () => {
     })
 
     it('should throw error when token is expired', async () => {
-      const mockEvent = {
-        context: {}
-      }
+      const mockEvent = createMockEvent()
 
       mockGetHeader.mockReturnValue('Bearer expired.token')
       mockExtractTokenFromHeader.mockReturnValue('expired.token')
@@ -110,9 +125,7 @@ describe('Auth Utils', () => {
         email: 'another@example.com'
       }
 
-      const mockEvent = {
-        context: {}
-      }
+      const mockEvent = createMockEvent()
 
       mockGetHeader.mockReturnValue('Bearer different.token')
       mockExtractTokenFromHeader.mockReturnValue('different.token')
@@ -126,9 +139,7 @@ describe('Auth Utils', () => {
     })
 
     it('should handle empty authorization header', async () => {
-      const mockEvent = {
-        context: {}
-      }
+      const mockEvent = createMockEvent()
 
       mockGetHeader.mockReturnValue('')
       mockExtractTokenFromHeader.mockReturnValue(null)
@@ -143,9 +154,7 @@ describe('Auth Utils', () => {
     })
 
     it('should handle malformed authorization header', async () => {
-      const mockEvent = {
-        context: {}
-      }
+      const mockEvent = createMockEvent()
 
       mockGetHeader.mockReturnValue('Basic dXNlcjpwYXNz')
       mockExtractTokenFromHeader.mockReturnValue(null)
@@ -168,9 +177,7 @@ describe('Auth Utils', () => {
         email: 'optional@example.com'
       }
 
-      const mockEvent = {
-        context: {}
-      }
+      const mockEvent = createMockEvent()
 
       mockGetHeader.mockReturnValue('Bearer valid.token')
       mockExtractTokenFromHeader.mockReturnValue('valid.token')
@@ -184,9 +191,7 @@ describe('Auth Utils', () => {
     })
 
     it('should return null when no authorization header', async () => {
-      const mockEvent = {
-        context: {}
-      }
+      const mockEvent = createMockEvent()
 
       mockGetHeader.mockReturnValue(undefined)
       mockExtractTokenFromHeader.mockReturnValue(null)
@@ -198,9 +203,7 @@ describe('Auth Utils', () => {
     })
 
     it('should return null when token is invalid', async () => {
-      const mockEvent = {
-        context: {}
-      }
+      const mockEvent = createMockEvent()
 
       mockGetHeader.mockReturnValue('Bearer invalid.token')
       mockExtractTokenFromHeader.mockReturnValue('invalid.token')
@@ -213,9 +216,7 @@ describe('Auth Utils', () => {
     })
 
     it('should return null when token is expired', async () => {
-      const mockEvent = {
-        context: {}
-      }
+      const mockEvent = createMockEvent()
 
       mockGetHeader.mockReturnValue('Bearer expired.token')
       mockExtractTokenFromHeader.mockReturnValue('expired.token')
@@ -228,9 +229,7 @@ describe('Auth Utils', () => {
     })
 
     it('should return null for empty authorization header', async () => {
-      const mockEvent = {
-        context: {}
-      }
+      const mockEvent = createMockEvent()
 
       mockGetHeader.mockReturnValue('')
       mockExtractTokenFromHeader.mockReturnValue(null)
@@ -242,9 +241,7 @@ describe('Auth Utils', () => {
     })
 
     it('should return null for malformed authorization header', async () => {
-      const mockEvent = {
-        context: {}
-      }
+      const mockEvent = createMockEvent()
 
       mockGetHeader.mockReturnValue('Basic dXNlcjpwYXNz')
       mockExtractTokenFromHeader.mockReturnValue(null)
@@ -262,9 +259,7 @@ describe('Auth Utils', () => {
         email: 'special@example.com'
       }
 
-      const mockEvent = {
-        context: {}
-      }
+      const mockEvent = createMockEvent()
 
       mockGetHeader.mockReturnValue('Bearer special.token')
       mockExtractTokenFromHeader.mockReturnValue('special.token')
@@ -286,9 +281,7 @@ describe('Auth Utils', () => {
         email: 'integration@example.com'
       }
 
-      const mockEvent = {
-        context: {}
-      }
+      const mockEvent = createMockEvent()
 
       mockGetHeader.mockReturnValue('Bearer integration.token')
       mockExtractTokenFromHeader.mockReturnValue('integration.token')
@@ -311,11 +304,9 @@ describe('Auth Utils', () => {
         email: 'existing@example.com'
       }
 
-      const mockEvent = {
-        context: {
-          existingData: 'some data'
-        }
-      }
+      const mockEvent = createMockEvent({
+        existingData: 'some data'
+      })
 
       mockGetHeader.mockReturnValue('Bearer existing.token')
       mockExtractTokenFromHeader.mockReturnValue('existing.token')
