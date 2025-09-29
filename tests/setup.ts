@@ -78,18 +78,23 @@ vi.mock('~/lib/jwt', () => ({
 // Mock Password
 vi.mock('~/lib/password', () => ({
   hashPassword: vi.fn(),
-  comparePassword: vi.fn()
+  verifyPassword: vi.fn()
 }))
 
 // Mock Logger
-vi.mock('~/lib/logger', () => ({
-  default: {
+vi.mock('~/lib/logger', () => {
+  const logger = {
     info: vi.fn(),
     error: vi.fn(),
-    warn: vi.fn(),
+    warning: vi.fn(),
     debug: vi.fn()
   }
-}))
+
+  return {
+    createLogger: vi.fn(() => logger),
+    default: logger
+  }
+})
 
 // Global Vue Test Utils config
 config.global.plugins = [createPinia()]
@@ -118,4 +123,3 @@ Object.defineProperty(window, 'sessionStorage', {
   },
   writable: true
 })
-

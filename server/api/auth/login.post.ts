@@ -77,6 +77,12 @@ export default defineEventHandler(async (event) => {
       error: (error as Error).message,
       stack: (error as Error).stack
     })
+
+    const typedError = error as { statusCode?: number }
+    if (typeof typedError?.statusCode === 'number') {
+      throw error
+    }
+
     throw createError({
       statusCode: 500,
       statusMessage: 'Fehler beim Anmelden'
