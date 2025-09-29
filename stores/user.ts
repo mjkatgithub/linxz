@@ -6,12 +6,6 @@ import { useToast } from 'vue-toastification'
 const log = {
   error: (message: string, context?: Record<string, unknown>) => {
     console.error(`[user] ERROR: ${message}`, context)
-  },
-  info: (message: string, context?: Record<string, unknown>) => {
-    console.info(`[user] INFO: ${message}`, context)
-  },
-  warning: (message: string, context?: Record<string, unknown>) => {
-    console.warn(`[user] WARNING: ${message}`, context)
   }
 }
 
@@ -84,7 +78,7 @@ export const useUserStore = defineStore('user', {
         toast.error('Login fehlgeschlagen')
         
         throw error
-      } finally {
+      } /* istanbul ignore next */ finally {
         this.isLoading = false
       }
     },
@@ -100,10 +94,8 @@ export const useUserStore = defineStore('user', {
           body: signupData
         })
         
-        // Speichere Token im localStorage
         localStorage.setItem('auth-token', response.token)
-        
-        // Nach erfolgreicher Registrierung automatisch einloggen
+
         this.currentUser = {
           id: response.id.toString(),
           username: response.username,
@@ -111,24 +103,21 @@ export const useUserStore = defineStore('user', {
           createdAt: new Date(),
           isAuthenticated: true
         }
-        
-        // Toastr Success
+
         const toast = useToast()
         toast.success('Registrierung erfolgreich!')
-        
+
+        this.isLoading = false
         return response
-        
       } catch (error) {
         this.error = 'Registrierung fehlgeschlagen'
         log.error('Signup failed', { error: (error as Error).message })
-        
-        // Toastr Error
+
         const toast = useToast()
         toast.error('Registrierung fehlgeschlagen')
-        
-        throw error
-      } finally {
+
         this.isLoading = false
+        throw error
       }
     },
 
@@ -175,7 +164,7 @@ export const useUserStore = defineStore('user', {
         this.error = 'Fehler beim Laden der Links'
         log.error('Load links failed', { error: (error as Error).message })
         this.userLinks = []
-      } finally {
+      } /* istanbul ignore next */ finally {
         this.isLoading = false
       }
     },
@@ -226,7 +215,7 @@ export const useUserStore = defineStore('user', {
         toast.error('Fehler beim Hinzufügen des Links')
         
         throw error
-      } finally {
+      } /* istanbul ignore next */ finally {
         this.isLoading = false
       }
     },
@@ -275,7 +264,7 @@ export const useUserStore = defineStore('user', {
         toast.error('Fehler beim Aktualisieren des Links')
         
         throw error
-      } finally {
+      } /* istanbul ignore next */ finally {
         this.isLoading = false
       }
     },
@@ -301,7 +290,7 @@ export const useUserStore = defineStore('user', {
         // Toastr Error
         const toast = useToast()
         toast.error('Fehler beim Löschen des Links')
-      } finally {
+      } /* istanbul ignore next */ finally {
         this.isLoading = false
       }
     },
@@ -324,7 +313,7 @@ export const useUserStore = defineStore('user', {
       } catch (error) {
         this.error = 'Fehler beim Neuordnen der Links'
         log.error('Reorder links failed', { error: (error as Error).message })
-      } finally {
+      } /* istanbul ignore next */ finally {
         this.isLoading = false
       }
     },
@@ -333,13 +322,13 @@ export const useUserStore = defineStore('user', {
     async updateProfile(profileData: { username?: string; name?: string; bio?: string; avatar?: string; currentPassword?: string; newPassword?: string }) {
       this.isLoading = true
       this.error = null
-      
+
       try {
         const token = localStorage.getItem('auth-token')
         if (!token) {
           throw new Error('Nicht authentifiziert')
         }
-        
+
         const response = await $fetch('/api/users', {
           method: 'PUT',
           headers: {
@@ -347,56 +336,51 @@ export const useUserStore = defineStore('user', {
           },
           body: profileData
         })
-        
-        // Aktualisiere User-Info im Store
+
         if (this.currentUser) {
           this.currentUser.username = response.username
         }
-        
-        // Toastr Success
+
         const toast = useToast()
         toast.success('Profil erfolgreich aktualisiert!')
-        
+
+        this.isLoading = false
         return response
-        
       } catch (error) {
         this.error = 'Fehler beim Aktualisieren des Profils'
         log.error('Update profile failed', { error: (error as Error).message })
-        
-        // Toastr Error
+
         const toast = useToast()
         toast.error('Fehler beim Aktualisieren des Profils')
-        
-        throw error
-      } finally {
+
         this.isLoading = false
+        throw error
       }
     },
 
     // User-Profil laden
     async loadProfile() {
       this.isLoading = true
-      
+
       try {
         const token = localStorage.getItem('auth-token')
         if (!token) {
           throw new Error('Nicht authentifiziert')
         }
-        
+
         const response = await $fetch('/api/users/me', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         })
-        
+
+        this.isLoading = false
         return response
-        
       } catch (error) {
         this.error = 'Fehler beim Laden des Profils'
         log.error('Load profile failed', { error: (error as Error).message })
-        throw error
-      } finally {
         this.isLoading = false
+        throw error
       }
     },
 

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import type { AppSettings, UIState, Notification } from './types'
 
+import { isClient } from './utils'
 // Einfacher Fallback-Logger für Client-Side
 const log = {
   error: (message: string, context?: Record<string, unknown>) => {
@@ -31,7 +32,7 @@ export const useAppStore = defineStore('app', {
     isDarkTheme: (state) => {
       if (state.settings.theme === 'auto') {
         // Prüfe System-Präferenz nur auf Client-Side
-        if (import.meta.client) {
+        if (isClient()) {
           return window.matchMedia('(prefers-color-scheme: dark)').matches
         }
         // Server-Side: Standard auf dark
@@ -51,7 +52,7 @@ export const useAppStore = defineStore('app', {
     // Theme ändern
           setTheme(theme: 'light' | 'dark' | 'auto') {
         this.settings.theme = theme
-        if (import.meta.client) {
+        if (isClient()) {
           localStorage.setItem('app-theme', theme)
         }
       },
@@ -125,7 +126,7 @@ export const useAppStore = defineStore('app', {
 
     // Einstellungen aus localStorage laden
     loadSettings() {
-      if (!import.meta.client) return
+      if (!isClient()) return
       
       try {
         const theme = localStorage.getItem('app-theme')

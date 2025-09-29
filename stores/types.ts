@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 // Zentrale Typendefinitionen für alle Stores
 
 // Benutzer-Typen

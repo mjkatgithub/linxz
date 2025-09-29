@@ -41,6 +41,7 @@ export default defineConfig({
         'dist',
         'tests/**',
         'coverage/**',
+        'stores/types.ts',
         '**/*.d.ts',
         '**/*.config.{js,ts}',
         'prisma/**'

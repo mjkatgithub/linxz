@@ -1,222 +1,597 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+﻿import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
+import type { Mock } from 'vitest'
 import { useUserStore } from '~/stores/user'
 
-// Mock $fetch
+const toastSuccessMock = vi.fn()
+const toastErrorMock = vi.fn()
+
+vi.mock('vue-toastification', () => ({
+  useToast: () => ({
+    success: toastSuccessMock,
+    error: toastErrorMock
+  })
+}))
+
+const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+const consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {})
+
+afterAll(() => {
+  consoleErrorSpy.mockRestore()
+  consoleWarnSpy.mockRestore()
+  consoleInfoSpy.mockRestore()
+})
+
+const applyLocalStorageMock = () => {
+  const storage = new Map<string, string>()
+  const localStorageMock = window.localStorage as unknown as Mocked<Storage>
+
+  localStorageMock.getItem.mockImplementation((key) => (storage.has(key) ? storage.get(key)! : null))
+  localStorageMock.setItem.mockImplementation((key, value) => {
+    storage.set(key, value)
+  })
+  localStorageMock.removeItem.mockImplementation((key) => {
+    storage.delete(key)
+  })
+  localStorageMock.clear.mockImplementation(() => {
+    storage.clear()
+  })
+
+  return { storage, localStorageMock }
+}
+
+type Mocked<T> = {
+  [K in keyof T]: T[K] extends (...args: infer A) => infer R ? Mock<A, R> : T[K]
+}
+
 global.$fetch = vi.fn() as any
 
+const createUserStore = () => {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  return useUserStore()
+}
+
 describe('User Store', () => {
-  let pinia: any
-  let userStore: any
+  let userStore: ReturnType<typeof useUserStore>
+  let localStorageMock: Mocked<Storage>
+  let storage: Map<string, string>
+  let fetchMock: Mock<[any, any?], Promise<any>>
 
   beforeEach(() => {
-    pinia = createPinia()
-    setActivePinia(pinia)
-    userStore = useUserStore()
-    
-    // Reset localStorage
-    localStorage.clear()
-    
-    // Reset mocks
+    ;({ storage, localStorageMock } = applyLocalStorageMock())
+    fetchMock = vi.fn()
+    ;(global.$fetch as any) = fetchMock
+    userStore = createUserStore()
     vi.clearAllMocks()
   })
 
-  describe('Initial State', () => {
-    it('should have correct initial state', () => {
-      expect(userStore.currentUser).toBeNull()
-      expect(userStore.userLinks).toEqual([])
-      expect(userStore.isLoading).toBe(false)
-      expect(userStore.error).toBeNull()
-    })
-
-    it('should have correct initial getters', () => {
-      expect(userStore.isLoggedIn).toBe(false)
-      expect(userStore.username).toBe('')
-      expect(userStore.activeLinks).toEqual([])
-      expect(userStore.linkCount).toBe(0)
-    })
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
-  describe('Authentication', () => {
-    it('should handle login with valid credentials', async () => {
-      const mockResponse = {
-        id: 1,
-        email: 'test@example.com',
-        username: 'testuser',
-        name: 'Test User',
-        token: 'mock-jwt-token'
+  it('starts with expected defaults', () => {
+    expect(userStore.currentUser).toBeNull()
+    expect(userStore.userLinks).toEqual([])
+    expect(userStore.isLoading).toBe(false)
+    expect(userStore.error).toBeNull()
+    expect(userStore.isLoggedIn).toBe(false)
+    expect(userStore.username).toBe('')
+    expect(userStore.activeLinks).toEqual([])
+    expect(userStore.linkCount).toBe(0)
+  })
+
+  it('derives getters from populated state', () => {
+    userStore.currentUser = {
+      id: '1',
+      username: 'tester',
+      email: 'tester@example.com',
+      createdAt: new Date(),
+      isAuthenticated: true
+    }
+    userStore.userLinks = [
+      { id: '1', title: 'One', url: 'https://one', isActive: true, order: 2, createdAt: new Date() },
+      { id: '2', title: 'Two', url: 'https://two', isActive: false, order: 1, createdAt: new Date() }
+    ]
+
+    expect(userStore.isLoggedIn).toBe(true)
+    expect(userStore.username).toBe('tester')
+    expect(userStore.activeLinks[0].id).toBe('1')
+    expect(userStore.linkCount).toBe(1)
+  })
+
+  describe('authentication', () => {
+    it('logs in successfully', async () => {
+      const response = {
+        id: 10,
+        username: 'tester',
+        email: 'tester@example.com',
+        token: 'token'
       }
+      fetchMock.mockResolvedValueOnce(response)
+      const loadLinksSpy = vi.spyOn(userStore, 'loadUserLinks').mockResolvedValue()
 
-      // Mock erfolgreiche API-Antwort
-      ;(global.$fetch as any).mockResolvedValue(mockResponse)
+      await userStore.login('tester@example.com', 'secret')
 
-      // Teste Login
-      await userStore.login('test@example.com', 'password123')
-
-      // Prüfe ob $fetch aufgerufen wurde
-      expect(global.$fetch).toHaveBeenCalledWith('/api/auth/login', {
+      expect(fetchMock).toHaveBeenCalledWith('/api/auth/login', {
         method: 'POST',
-        body: {
-          email: 'test@example.com',
-          password: 'password123'
-        }
+        body: { email: 'tester@example.com', password: 'secret' }
       })
-
-      // Prüfe Store-Status
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('auth-token', 'token')
+      expect(userStore.currentUser?.username).toBe('tester')
       expect(userStore.isLoggedIn).toBe(true)
-      expect(userStore.currentUser).toMatchObject({
-        id: '1',
-        username: 'testuser',
-        email: 'test@example.com'
-      })
-      // Token wird in Tests nicht gesetzt, da Store-Funktion nicht vollständig ausgeführt wird
-      // expect(localStorage.getItem('auth-token')).toBe('mock-jwt-token')
+      expect(loadLinksSpy).toHaveBeenCalled()
+      expect(toastSuccessMock).toHaveBeenCalled()
     })
 
-    it('should handle login failure', async () => {
-      // Mock fehlgeschlagene API-Antwort
-      const mockError = new Error('Invalid credentials')
-      ;(global.$fetch as any).mockRejectedValue(mockError)
+    it('handles login failure', async () => {
+      fetchMock.mockRejectedValueOnce(new Error('invalid'))
 
-      // Teste fehlgeschlagenen Login
-      try {
-        await userStore.login('test@example.com', 'wrongpassword')
-      } catch (error) {
-        expect(error).toEqual(mockError)
+      await expect(userStore.login('tester@example.com', 'bad')).rejects.toThrow('invalid')
+      expect(userStore.error).toBe('Login fehlgeschlagen')
+      expect(toastErrorMock).toHaveBeenCalledWith('Login fehlgeschlagen')
+    })
+
+    it('signs up successfully', async () => {
+      const response = {
+        id: 2,
+        username: 'new',
+        email: 'new@example.com',
+        token: 'signup-token'
       }
+      fetchMock.mockResolvedValueOnce(response)
 
-      // Prüfe Store-Status
-      expect(userStore.isLoggedIn).toBe(false)
-      expect(userStore.currentUser).toBeNull()
+      const result = await userStore.signup({
+        email: 'new@example.com',
+        username: 'new',
+        password: 'pw'
+      })
+
+      expect(result).toEqual(response)
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('auth-token', 'signup-token')
+      expect(userStore.currentUser?.username).toBe('new')
+      expect(toastSuccessMock).toHaveBeenCalledWith('Registrierung erfolgreich!')
     })
 
-    it('should handle logout correctly', () => {
-      // Setze initialen Zustand
-      userStore.currentUser = { id: 1, username: 'testuser' }
-      userStore.userLinks = [{ id: 1, title: 'Test' }]
-      localStorage.setItem('auth-token', 'test-token')
+    it('handles signup failure', async () => {
+      fetchMock.mockRejectedValueOnce(new Error('exists'))
 
-      // Teste Logout
+      await expect(userStore.signup({
+        email: 'exists@example.com',
+        username: 'exists',
+        password: 'pw'
+      })).rejects.toThrow('exists')
+
+      expect(userStore.error).toBe('Registrierung fehlgeschlagen')
+      expect(toastErrorMock).toHaveBeenCalledWith('Registrierung fehlgeschlagen')
+    })
+
+    it('logs out', () => {
+      userStore.currentUser = {
+        id: '1',
+        username: 'tester',
+        email: 'tester@example.com',
+        createdAt: new Date(),
+        isAuthenticated: true
+      }
+      userStore.userLinks = [{ id: '1', title: 'One', url: '#', isActive: true, order: 1, createdAt: new Date() }]
+      localStorageMock.setItem('auth-token', 'token')
+
       userStore.logout()
 
-      // Prüfe Store-Status
-      expect(userStore.isLoggedIn).toBe(false)
       expect(userStore.currentUser).toBeNull()
       expect(userStore.userLinks).toEqual([])
-      expect(userStore.error).toBeNull()
-      expect(localStorage.getItem('auth-token')).toBeUndefined()
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('auth-token')
+    })
+
+    it('returns false from checkAuth when no token is present', async () => {
+      const result = await userStore.checkAuth()
+      expect(result).toBe(false)
+    })
+
+    it('loads profile during checkAuth', async () => {
+      storage.set('auth-token', 'token')
+      fetchMock.mockResolvedValueOnce({
+        id: 2,
+        username: 'tester',
+        email: 'tester@example.com',
+        createdAt: new Date().toISOString()
+      })
+      const loadLinksSpy = vi.spyOn(userStore, 'loadUserLinks').mockResolvedValue()
+
+      const result = await userStore.checkAuth()
+
+      expect(result).toBe(true)
+      expect(userStore.currentUser?.id).toBe('2')
+      expect(loadLinksSpy).toHaveBeenCalled()
+    })
+
+    it('clears token when checkAuth fails', async () => {
+      storage.set('auth-token', 'token')
+      fetchMock.mockRejectedValueOnce(new Error('expired'))
+
+      const result = await userStore.checkAuth()
+
+      expect(result).toBe(false)
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('auth-token')
     })
   })
 
-  describe('Link Management', () => {
-    it('should load user links', async () => {
-      const mockLinks = [
-        { id: 1, title: 'GitHub', url: 'https://github.com', isActive: true, order: 1 },
-        { id: 2, title: 'LinkedIn', url: 'https://linkedin.com', isActive: false, order: 2 }
-      ]
-
-      // Mock erfolgreiche API-Antwort
-      ;(global.$fetch as any).mockResolvedValue(mockLinks)
-
-      // Setze Token für authentifizierte Anfrage
-      localStorage.setItem('auth-token', 'test-token')
-
-      // Teste Link-Loading
+  describe('loadUserLinks', () => {
+    it('returns early when no user set', async () => {
       await userStore.loadUserLinks()
-
-      // Prüfe Store-Status (Store-Funktion macht in Tests keinen API-Call, aber Logik funktioniert)
-      // Simuliere manuell das Setzen der Links
-      userStore.userLinks = mockLinks
-      expect(userStore.userLinks).toEqual(mockLinks)
-      expect(userStore.activeLinks).toHaveLength(1)
-      expect(userStore.linkCount).toBe(1)
+      expect(fetchMock).not.toHaveBeenCalled()
     })
 
-    it('should add new link', async () => {
-      const mockLink = {
-        id: 1,
-        title: 'GitHub',
-        url: 'https://github.com',
-        description: 'My GitHub profile',
-        isActive: true,
-        order: 1
+    it('loads links for authenticated user', async () => {
+      userStore.currentUser = {
+        id: '1',
+        username: 'tester',
+        email: 'tester@example.com',
+        createdAt: new Date(),
+        isAuthenticated: true
+      }
+      storage.set('auth-token', 'token')
+      const now = new Date().toISOString()
+      fetchMock.mockResolvedValueOnce({
+        links: [
+          {
+            id: 1,
+            title: 'One',
+            url: '#',
+            isActive: true,
+            order: 1,
+            createdAt: now
+          }
+        ]
+      })
+
+      await userStore.loadUserLinks()
+
+      expect(userStore.userLinks).toHaveLength(1)
+      expect(userStore.userLinks[0]).toMatchObject({ id: '1', title: 'One' })
+      expect(userStore.userLinks[0].createdAt).toBeInstanceOf(Date)
+    })
+
+    it('sets error when token missing', async () => {
+      userStore.currentUser = {
+        id: '1',
+        username: 'tester',
+        email: 'tester@example.com',
+        createdAt: new Date(),
+        isAuthenticated: true
       }
 
-      // Mock erfolgreiche API-Antwort
-      ;(global.$fetch as any).mockResolvedValue(mockLink)
+      await userStore.loadUserLinks()
 
-      // Setze Token für authentifizierte Anfrage
-      localStorage.setItem('auth-token', 'test-token')
+      expect(userStore.error).toBe('Fehler beim Laden der Links')
+      expect(userStore.userLinks).toEqual([])
+    })
+  })
 
-      // Teste Link-Erstellung
+  describe('addLink', () => {
+    it('does nothing when user absent', async () => {
       await userStore.addLink({
-        title: 'GitHub',
-        url: 'https://github.com',
-        description: 'My GitHub profile',
+        title: 'A',
+        url: '#',
+        description: 'desc',
+        isActive: true,
+        order: 1
+      })
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it('adds link and shows toast', async () => {
+      userStore.currentUser = {
+        id: '1',
+        username: 'tester',
+        email: 'tester@example.com',
+        createdAt: new Date(),
+        isAuthenticated: true
+      }
+      storage.set('auth-token', 'token')
+      const now = new Date().toISOString()
+      fetchMock.mockResolvedValueOnce({
+        id: 5,
+        title: 'New',
+        url: 'https://new',
+        description: 'desc',
+        isActive: true,
+        order: 1,
+        createdAt: now
+      })
+
+      await userStore.addLink({
+        title: 'New',
+        url: 'https://new',
+        description: 'desc',
         isActive: true,
         order: 1
       })
 
-      // Prüfe Store-Status (Store-Funktion macht in Tests keinen API-Call, aber Logik funktioniert)
-      // Simuliere manuell das Hinzufügen des Links
-      userStore.userLinks.push(mockLink)
-      expect(userStore.userLinks).toHaveLength(1)
-      expect(userStore.userLinks[0]).toEqual(mockLink)
+      expect(userStore.userLinks[0]).toMatchObject({ id: '5', title: 'New' })
+      expect(toastSuccessMock).toHaveBeenCalled()
+      const addSuccessMessage = toastSuccessMock.mock.calls[0][0] as string
+      expect(addSuccessMessage).toContain('Link erfolgreich')
     })
 
-    it('should delete link', async () => {
-      // Setze initiale Links
-      userStore.userLinks = [
-        { id: 1, title: 'GitHub', url: 'https://github.com', isActive: true, order: 1 },
-        { id: 2, title: 'LinkedIn', url: 'https://linkedin.com', isActive: true, order: 2 }
-      ]
+    it('throws when adding link without a token', async () => {
+      userStore.currentUser = {
+        id: '1',
+        username: 'tester',
+        email: 'tester@example.com',
+        createdAt: new Date(),
+        isAuthenticated: true
+      }
+      localStorageMock.getItem.mockReturnValueOnce(null)
 
-      // Mock erfolgreiche API-Antwort
-      ;(global.$fetch as any).mockResolvedValue({})
+      await expect(userStore.addLink({
+        title: 'GitHub',
+        url: 'https://github.com',
+        description: 'profile',
+        isActive: true,
+        order: 1
+      })).rejects.toThrow('Nicht authentifiziert')
 
-      // Setze Token für authentifizierte Anfrage
-      localStorage.setItem('auth-token', 'test-token')
+      expect(userStore.error).toBe('Fehler beim Hinzufügen des Links')
+      const missingTokenMessage = toastErrorMock.mock.calls[0][0] as string
+      expect(missingTokenMessage).toContain('Fehler beim Hinzuf')
+    })
 
-      // Teste Link-Löschung
-      await userStore.deleteLink(1)
+    it('propagates API failures', async () => {
+      userStore.currentUser = {
+        id: '1',
+        username: 'tester',
+        email: 'tester@example.com',
+        createdAt: new Date(),
+        isAuthenticated: true
+      }
+      storage.set('auth-token', 'token')
+      fetchMock.mockRejectedValueOnce(new Error('failed'))
 
-      // Prüfe Store-Status (API-Call wird in Tests nicht gemacht, aber Store-Logik funktioniert)
-      expect(userStore.userLinks).toHaveLength(1)
-      expect(userStore.userLinks[0].id).toBe(2)
+      await expect(userStore.addLink({
+        title: 'New',
+        url: 'https://new',
+        description: 'desc',
+        isActive: true,
+        order: 1
+      })).rejects.toThrow('failed')
+
+      expect(userStore.error).toBe('Fehler beim Hinzufügen des Links')
+      expect(toastErrorMock).toHaveBeenCalled()
     })
   })
 
-  describe('Getters', () => {
-    it('should return correct username', () => {
-      userStore.currentUser = { id: 1, username: 'testuser' }
-      expect(userStore.username).toBe('testuser')
+    it('normalises missing description when adding link', async () => {
+      userStore.currentUser = {
+        id: '1',
+        username: 'tester',
+        email: 'tester@example.com',
+        createdAt: new Date(),
+        isAuthenticated: true
+      }
+      storage.set('auth-token', 'token')
+      const now = new Date().toISOString()
+      fetchMock.mockResolvedValueOnce({
+        id: 6,
+        title: 'Two',
+        url: 'https://two',
+        description: null,
+        isActive: true,
+        order: 2,
+        createdAt: now
+      })
+
+      await userStore.addLink({
+        title: 'Two',
+        url: 'https://two',
+        description: undefined,
+        isActive: true,
+        order: 2
+      })
+
+      expect(userStore.userLinks[0].description).toBeUndefined()
+      expect(toastSuccessMock).toHaveBeenCalled()
     })
 
-    it('should return empty username when not logged in', () => {
-      userStore.currentUser = null
-      expect(userStore.username).toBe('')
-    })
-
-    it('should filter active links correctly', () => {
+  describe('updateLink', () => {
+    it('updates existing link', async () => {
       userStore.userLinks = [
-        { id: 1, title: 'GitHub', url: 'https://github.com', isActive: true, order: 1 },
-        { id: 2, title: 'LinkedIn', url: 'https://linkedin.com', isActive: false, order: 2 },
-        { id: 3, title: 'Twitter', url: 'https://twitter.com', isActive: true, order: 3 }
+        {
+          id: '42',
+          title: 'Old',
+          url: 'https://old',
+          description: 'old',
+          isActive: false,
+          order: 1,
+          createdAt: new Date()
+        }
+      ]
+      storage.set('auth-token', 'token')
+      fetchMock.mockResolvedValueOnce({
+        title: 'New',
+        url: 'https://new',
+        description: null,
+        isActive: true,
+        order: 2
+      })
+
+      await userStore.updateLink('42', { title: 'New' })
+
+      expect(userStore.userLinks[0]).toMatchObject({ title: 'New', url: 'https://new', description: undefined })
+      expect(toastSuccessMock).toHaveBeenCalledWith('Link erfolgreich aktualisiert!')
+    })
+
+    it('ignores update when link is missing', async () => {
+      userStore.userLinks = []
+      storage.set('auth-token', 'token')
+      fetchMock.mockResolvedValueOnce({
+        title: 'Name',
+        url: 'https://url',
+        description: null,
+        isActive: true,
+        order: 1
+      })
+
+      await userStore.updateLink('missing', { title: 'Name' })
+
+      expect(userStore.userLinks).toEqual([])
+      expect(toastSuccessMock).toHaveBeenCalledWith('Link erfolgreich aktualisiert!')
+    })
+
+    it('throws when no token is available', async () => {
+      await expect(userStore.updateLink('id', { title: 'New' })).rejects.toThrow('Nicht authentifiziert')
+      expect(userStore.error).toBe('Fehler beim Aktualisieren des Links')
+      expect(toastErrorMock).toHaveBeenCalledWith('Fehler beim Aktualisieren des Links')
+    })
+
+    it('propagates API errors', async () => {
+      storage.set('auth-token', 'token')
+      fetchMock.mockRejectedValueOnce(new Error('update failed'))
+
+      await expect(userStore.updateLink('id', { title: 'New' })).rejects.toThrow('update failed')
+      expect(userStore.error).toBe('Fehler beim Aktualisieren des Links')
+      expect(toastErrorMock).toHaveBeenCalledWith('Fehler beim Aktualisieren des Links')
+    })
+  })
+
+  describe('deleteLink', () => {
+    it('removes link after delay', async () => {
+      vi.useFakeTimers()
+      userStore.userLinks = [
+        { id: '1', title: 'One', url: '#', isActive: true, order: 1, createdAt: new Date() },
+        { id: '2', title: 'Two', url: '#', isActive: true, order: 2, createdAt: new Date() }
       ]
 
-      expect(userStore.activeLinks).toHaveLength(2)
-      expect(userStore.activeLinks[0].title).toBe('GitHub')
-      expect(userStore.activeLinks[1].title).toBe('Twitter')
+      const promise = userStore.deleteLink('1')
+      await vi.advanceTimersByTimeAsync(500)
+      await promise
+
+      expect(userStore.userLinks).toHaveLength(1)
+      expect(toastSuccessMock).toHaveBeenCalledWith('Link erfolgreich gelöscht!')
     })
 
-    it('should count active links correctly', () => {
+    it('logs errors when deletion fails', async () => {
+      const setTimeoutSpy = vi.spyOn(global, 'setTimeout').mockImplementation(() => {
+        throw new Error('timer fail') as any
+      })
+
+      await userStore.deleteLink('1')
+
+      expect(userStore.error).toBe('Fehler beim Löschen des Links')
+      const deleteErrorMessage = toastErrorMock.mock.calls[0][0] as string
+      expect(deleteErrorMessage).toContain('Fehler')
+      expect(deleteErrorMessage.toLowerCase()).toContain('sch')
+
+      setTimeoutSpy.mockRestore()
+    })
+  })
+
+  describe('reorderLinks', () => {
+    it('updates order positions', async () => {
+      vi.useFakeTimers()
       userStore.userLinks = [
-        { id: 1, title: 'GitHub', url: 'https://github.com', isActive: true, order: 1 },
-        { id: 2, title: 'LinkedIn', url: 'https://linkedin.com', isActive: false, order: 2 },
-        { id: 3, title: 'Twitter', url: 'https://twitter.com', isActive: true, order: 3 }
+        { id: 'a', title: 'A', url: '#', isActive: true, order: 3, createdAt: new Date() },
+        { id: 'b', title: 'B', url: '#', isActive: true, order: 1, createdAt: new Date() },
+        { id: 'c', title: 'C', url: '#', isActive: true, order: 2, createdAt: new Date() }
       ]
 
-      expect(userStore.linkCount).toBe(2)
+      const promise = userStore.reorderLinks(['b', 'c', 'a'])
+      await vi.advanceTimersByTimeAsync(500)
+      await promise
+
+      expect(userStore.userLinks.map((link) => ({ id: link.id, order: link.order }))).toEqual([
+        { id: 'a', order: 3 },
+        { id: 'b', order: 1 },
+        { id: 'c', order: 2 }
+      ])
+    })
+
+    it('handles reorder failures gracefully', async () => {
+      const setTimeoutSpy = vi.spyOn(global, 'setTimeout').mockImplementation(() => {
+        throw new Error('timer fail') as any
+      })
+
+      await userStore.reorderLinks(['1'])
+
+      expect(userStore.error).toBe('Fehler beim Neuordnen der Links')
+      setTimeoutSpy.mockRestore()
+    })
+  })
+
+  describe('profile', () => {
+    it('updates profile information', async () => {
+      userStore.currentUser = {
+        id: '1',
+        username: 'old',
+        email: 'user@example.com',
+        createdAt: new Date(),
+        isAuthenticated: true
+      }
+      storage.set('auth-token', 'token')
+      fetchMock.mockResolvedValueOnce({ username: 'updated' })
+
+      const result = await userStore.updateProfile({ username: 'updated' })
+
+      expect(result).toEqual({ username: 'updated' })
+      expect(userStore.currentUser?.username).toBe('updated')
+      expect(toastSuccessMock).toHaveBeenCalledWith('Profil erfolgreich aktualisiert!')
+    })
+
+    it('throws when updating profile without token', async () => {
+      userStore.currentUser = {
+        id: '1',
+        username: 'user',
+        email: 'user@example.com',
+        createdAt: new Date(),
+        isAuthenticated: true
+      }
+
+      await expect(userStore.updateProfile({ username: 'new' })).rejects.toThrow('Nicht authentifiziert')
+      expect(userStore.error).toBe('Fehler beim Aktualisieren des Profils')
+      expect(toastErrorMock).toHaveBeenCalledWith('Fehler beim Aktualisieren des Profils')
+    })
+
+    it('propagates profile update failures', async () => {
+      userStore.currentUser = {
+        id: '1',
+        username: 'old',
+        email: 'user@example.com',
+        createdAt: new Date(),
+        isAuthenticated: true
+      }
+      storage.set('auth-token', 'token')
+      fetchMock.mockRejectedValueOnce(new Error('update failed'))
+
+      await expect(userStore.updateProfile({ username: 'new' })).rejects.toThrow('update failed')
+      expect(userStore.error).toBe('Fehler beim Aktualisieren des Profils')
+      expect(toastErrorMock).toHaveBeenCalledWith('Fehler beim Aktualisieren des Profils')
+    })
+
+    it('loads profile data', async () => {
+      storage.set('auth-token', 'token')
+      fetchMock.mockResolvedValueOnce({ username: 'tester' })
+
+      const profile = await userStore.loadProfile()
+
+      expect(profile).toEqual({ username: 'tester' })
+      expect(fetchMock).toHaveBeenCalledWith('/api/users/me', {
+        headers: { Authorization: 'Bearer token' }
+      })
+    })
+
+    it('throws when loading profile without token', async () => {
+      await expect(userStore.loadProfile()).rejects.toThrow('Nicht authentifiziert')
+      expect(userStore.error).toBe('Fehler beim Laden des Profils')
+    })
+
+    it('propagates loadProfile errors', async () => {
+      storage.set('auth-token', 'token')
+      fetchMock.mockRejectedValueOnce(new Error('profile failed'))
+
+      await expect(userStore.loadProfile()).rejects.toThrow('profile failed')
+      expect(userStore.error).toBe('Fehler beim Laden des Profils')
     })
   })
 })
