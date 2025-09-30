@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia'
-import type { User, Link, CreateLinkRequest, UpdateLinkRequest } from './types'
+﻿import { defineStore } from 'pinia'
+import type { User, Link, CreateLinkRequest, UpdateLinkRequest, AuthResponse, LinkResponse, UserProfileResponse } from './types'
 import { useToast } from 'vue-toastification'
 
 interface UserLinksApiLink {
@@ -16,14 +16,14 @@ interface UserLinksResponse {
   links: UserLinksApiLink[]
 }
 
-// Einfacher Fallback-Logger für Client-Side
+// Einfacher Fallback-Logger fÃ¼r Client-Side
 const log = {
   error: (message: string, context?: Record<string, unknown>) => {
     console.error(`[user] ERROR: ${message}`, context)
   }
 }
 
-// Der Store für Benutzer und deren Links
+// Der Store fÃ¼r Benutzer und deren Links
 export const useUserStore = defineStore('user', {
   // State - hier werden die Daten gespeichert
   state: () => ({
@@ -33,25 +33,25 @@ export const useUserStore = defineStore('user', {
     error: null as string | null
   }),
 
-  // Getters - für berechnete Werte
+  // Getters - fÃ¼r berechnete Werte
   getters: {
-    // Prüft ob ein Benutzer eingeloggt ist
+    // PrÃ¼ft ob ein Benutzer eingeloggt ist
     isLoggedIn: (state) => state.currentUser?.isAuthenticated ?? false,
     
-    // Gibt den Benutzernamen zurück
+    // Gibt den Benutzernamen zurÃ¼ck
     username: (state) => state.currentUser?.username ?? '',
     
-    // Gibt die aktiven Links zurück (sortiert nach Reihenfolge)
+    // Gibt die aktiven Links zurÃ¼ck (sortiert nach Reihenfolge)
     activeLinks: (state) => 
       state.userLinks
         .filter(link => link.isActive)
         .sort((a, b) => a.order - b.order),
     
-    // Zählt die aktiven Links
+    // ZÃ¤hlt die aktiven Links
     linkCount: (state) => state.userLinks.filter(link => link.isActive).length
   },
 
-  // Actions - für Aktionen und API-Calls
+  // Actions - fÃ¼r Aktionen und API-Calls
   actions: {
     // Benutzer einloggen
     async login(email: string, password: string) {
@@ -59,7 +59,7 @@ export const useUserStore = defineStore('user', {
       this.error = null
       
       try {
-        const response = await $fetch('/api/auth/login', {
+        const response = await $fetch<AuthResponse>('/api/auth/login', {
           method: 'POST',
           body: { email, password }
         })
@@ -103,7 +103,7 @@ export const useUserStore = defineStore('user', {
       this.error = null
       
       try {
-        const response = await $fetch('/api/users', {
+        const response = await $fetch<AuthResponse>('/api/users', {
           method: 'POST',
           body: signupData
         })
@@ -156,7 +156,7 @@ export const useUserStore = defineStore('user', {
           throw new Error('Nicht authentifiziert')
         }
         
-        // Lade eigene Links über API
+        // Lade eigene Links Ã¼ber API
         const response = await $fetch<UserLinksResponse>('/api/users/links', {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -183,7 +183,7 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    // Neuen Link hinzufügen
+    // Neuen Link hinzufuegen
     async addLink(linkData: CreateLinkRequest) {
       if (!this.currentUser) return
       
@@ -195,7 +195,7 @@ export const useUserStore = defineStore('user', {
           throw new Error('Nicht authentifiziert')
         }
         
-        const response = await $fetch('/api/links', {
+        const response = await $fetch<LinkResponse>('/api/links', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -218,15 +218,15 @@ export const useUserStore = defineStore('user', {
         
         // Toastr Success
         const toast = useToast()
-        toast.success('Link erfolgreich hinzugefügt!')
+        toast.success('Link erfolgreich hinzugefuegt!')
         
       } catch (error) {
-        this.error = 'Fehler beim Hinzufügen des Links'
+        this.error = 'Fehler beim Hinzufuegen des Links'
         log.error('Add link failed', { error: (error as Error).message })
         
         // Toastr Error
         const toast = useToast()
-        toast.error('Fehler beim Hinzufügen des Links')
+        toast.error('Fehler beim Hinzufuegen des Links')
         
         throw error
       } /* istanbul ignore next */ finally {
@@ -244,7 +244,7 @@ export const useUserStore = defineStore('user', {
           throw new Error('Nicht authentifiziert')
         }
         
-        const response = await $fetch(`/api/links/${linkId}`, {
+        const response = await $fetch<LinkResponse>(`/api/links/${linkId}`, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -283,27 +283,38 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    // Link löschen
+    // Link loeschen
     async deleteLink(linkId: string) {
       this.isLoading = true
-      
+      this.error = null
+
       try {
-        // TODO: Hier später echte API-Calls machen
-        await new Promise(resolve => setTimeout(resolve, 500))
-        
+        const token = localStorage.getItem('auth-token')
+        if (!token) {
+          throw new Error('Nicht authentifiziert')
+        }
+
+        const response = await $fetch<LinkResponse>(`/api/links/${linkId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
         this.userLinks = this.userLinks.filter(link => link.id !== linkId)
-        
-        // Toastr Success
+
         const toast = useToast()
-        toast.success('Link erfolgreich gelöscht!')
-        
+        toast.success('Link erfolgreich geloescht!')
+
+        return response
       } catch (error) {
-        this.error = 'Fehler beim Löschen des Links'
+        this.error = 'Fehler beim Loeschen des Links'
         log.error('Delete link failed', { error: (error as Error).message })
-        
-        // Toastr Error
+
         const toast = useToast()
-        toast.error('Fehler beim Löschen des Links')
+        toast.error('Fehler beim Loeschen des Links')
+
+        throw error
       } /* istanbul ignore next */ finally {
         this.isLoading = false
       }
@@ -314,7 +325,7 @@ export const useUserStore = defineStore('user', {
       this.isLoading = true
       
       try {
-        // TODO: Hier später echte API-Calls machen
+        // TODO: Hier spÃ¤ter echte API-Calls machen
         await new Promise(resolve => setTimeout(resolve, 500))
         
         linkIds.forEach((linkId, index) => {
@@ -343,7 +354,7 @@ export const useUserStore = defineStore('user', {
           throw new Error('Nicht authentifiziert')
         }
 
-        const response = await $fetch('/api/users', {
+        const response = await $fetch<UserProfileResponse>('/api/users', {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -382,7 +393,7 @@ export const useUserStore = defineStore('user', {
           throw new Error('Nicht authentifiziert')
         }
 
-        const response = await $fetch('/api/users/me', {
+        const response = await $fetch<UserProfileResponse>('/api/users/me', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -404,8 +415,8 @@ export const useUserStore = defineStore('user', {
       if (!token) return false
       
       try {
-        // Lade User-Profil über API
-        const userData = await $fetch('/api/users/me', {
+        // Lade User-Profil Ã¼ber API
+        const userData = await $fetch<UserProfileResponse>('/api/users/me', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -434,3 +445,9 @@ export const useUserStore = defineStore('user', {
     }
   }
 })
+
+
+
+
+
+

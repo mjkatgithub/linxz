@@ -1,4 +1,4 @@
-import { expect } from 'chai'
+﻿import { expect } from 'chai'
 import { config } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { vi } from 'vitest'
@@ -54,6 +54,7 @@ vi.mock('~/lib/prisma', () => ({
   default: {
     user: {
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       findMany: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
@@ -61,6 +62,7 @@ vi.mock('~/lib/prisma', () => ({
     },
     link: {
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       findMany: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
@@ -123,3 +125,4 @@ Object.defineProperty(window, 'sessionStorage', {
   },
   writable: true
 })
+

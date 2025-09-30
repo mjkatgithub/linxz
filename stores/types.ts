@@ -95,3 +95,33 @@ export interface UpdateProfileRequest {
   currentPassword?: string
   newPassword?: string
 }
+
+// API Responses
+export interface AuthResponse {
+  id: number
+  username: string
+  email: string
+  name?: string | null
+  token: string
+}
+
+export interface LinkResponse {
+  id: number
+  title: string
+  url: string
+  description: string | null
+  isActive: boolean
+  order: number
+  createdAt: string
+}
+
+export interface UserProfileResponse {
+  id: number
+  username: string
+  email: string
+  name: string | null
+  bio: string | null
+  avatar: string | null
+  createdAt: string
+}
+

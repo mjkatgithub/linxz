@@ -23,15 +23,22 @@ afterAll(() => {
   consoleInfoSpy.mockRestore()
 })
 
+type StorageMock = {
+  getItem: Mock<(key: string) => string | null>
+  setItem: Mock<(key: string, value: string) => void>
+  removeItem: Mock<(key: string) => void>
+  clear: Mock<() => void>
+}
+
 const applyLocalStorageMock = () => {
   const storage = new Map<string, string>()
-  const localStorageMock = window.localStorage as unknown as Mocked<Storage>
+  const localStorageMock = window.localStorage as unknown as StorageMock
 
-  localStorageMock.getItem.mockImplementation((key) => (storage.has(key) ? storage.get(key)! : null))
-  localStorageMock.setItem.mockImplementation((key, value) => {
+  localStorageMock.getItem.mockImplementation((key: string) => (storage.has(key) ? storage.get(key)! : null))
+  localStorageMock.setItem.mockImplementation((key: string, value: string) => {
     storage.set(key, value)
   })
-  localStorageMock.removeItem.mockImplementation((key) => {
+  localStorageMock.removeItem.mockImplementation((key: string) => {
     storage.delete(key)
   })
   localStorageMock.clear.mockImplementation(() => {
@@ -39,10 +46,6 @@ const applyLocalStorageMock = () => {
   })
 
   return { storage, localStorageMock }
-}
-
-type Mocked<T> = {
-  [K in keyof T]: T[K] extends (...args: infer A) => infer R ? Mock<A, R> : T[K]
 }
 
 global.$fetch = vi.fn() as any
@@ -55,9 +58,9 @@ const createUserStore = () => {
 
 describe('User Store', () => {
   let userStore: ReturnType<typeof useUserStore>
-  let localStorageMock: Mocked<Storage>
+  let localStorageMock: StorageMock
   let storage: Map<string, string>
-  let fetchMock: Mock<[any, any?], Promise<any>>
+  let fetchMock: any
 
   beforeEach(() => {
     ;({ storage, localStorageMock } = applyLocalStorageMock())
@@ -334,7 +337,7 @@ describe('User Store', () => {
         order: 1
       })).rejects.toThrow('Nicht authentifiziert')
 
-      expect(userStore.error).toBe('Fehler beim Hinzufügen des Links')
+      expect(userStore.error).toBe('Fehler beim Hinzufuegen des Links')
       const missingTokenMessage = toastErrorMock.mock.calls[0][0] as string
       expect(missingTokenMessage).toContain('Fehler beim Hinzuf')
     })
@@ -358,7 +361,7 @@ describe('User Store', () => {
         order: 1
       })).rejects.toThrow('failed')
 
-      expect(userStore.error).toBe('Fehler beim Hinzufügen des Links')
+      expect(userStore.error).toBe('Fehler beim Hinzufuegen des Links')
       expect(toastErrorMock).toHaveBeenCalled()
     })
   })
@@ -457,34 +460,43 @@ describe('User Store', () => {
   })
 
   describe('deleteLink', () => {
-    it('removes link after delay', async () => {
-      vi.useFakeTimers()
+    beforeEach(() => {
       userStore.userLinks = [
         { id: '1', title: 'One', url: '#', isActive: true, order: 1, createdAt: new Date() },
         { id: '2', title: 'Two', url: '#', isActive: true, order: 2, createdAt: new Date() }
       ]
-
-      const promise = userStore.deleteLink('1')
-      await vi.advanceTimersByTimeAsync(500)
-      await promise
-
-      expect(userStore.userLinks).toHaveLength(1)
-      expect(toastSuccessMock).toHaveBeenCalledWith('Link erfolgreich gelöscht!')
+      storage.set('auth-token', 'token')
     })
 
-    it('logs errors when deletion fails', async () => {
-      const setTimeoutSpy = vi.spyOn(global, 'setTimeout').mockImplementation(() => {
-        throw new Error('timer fail') as any
-      })
+    it('removes link after successful API call', async () => {
+      fetchMock.mockResolvedValueOnce({ success: true })
 
       await userStore.deleteLink('1')
 
-      expect(userStore.error).toBe('Fehler beim Löschen des Links')
-      const deleteErrorMessage = toastErrorMock.mock.calls[0][0] as string
-      expect(deleteErrorMessage).toContain('Fehler')
-      expect(deleteErrorMessage.toLowerCase()).toContain('sch')
+      expect(fetchMock).toHaveBeenCalledWith('/api/links/1', {
+        method: 'DELETE',
+        headers: { Authorization: 'Bearer token' }
+      })
+      expect(userStore.userLinks).toHaveLength(1)
+      expect(toastSuccessMock).toHaveBeenCalledWith(expect.stringContaining('erfolgreich'))
+    })
 
-      setTimeoutSpy.mockRestore()
+    it('throws when deletion is attempted without auth token', async () => {
+      storage.clear()
+
+      await expect(userStore.deleteLink('1')).rejects.toThrow('Nicht authentifiziert')
+      expect(fetchMock).not.toHaveBeenCalled()
+      expect(userStore.error).toBe('Fehler beim Loeschen des Links')
+      expect(toastErrorMock).toHaveBeenCalledWith(expect.stringContaining('Fehler'))
+    })
+
+    it('propagates API errors', async () => {
+      fetchMock.mockRejectedValueOnce(new Error('delete failed'))
+
+      await expect(userStore.deleteLink('1')).rejects.toThrow('delete failed')
+      expect(userStore.userLinks).toHaveLength(2)
+      expect(userStore.error).toBe('Fehler beim Loeschen des Links')
+      expect(toastErrorMock).toHaveBeenCalledWith(expect.stringContaining('Fehler'))
     })
   })
 
@@ -595,3 +607,10 @@ describe('User Store', () => {
     })
   })
 })
+
+
+
+
+
+
+
