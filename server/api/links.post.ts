@@ -1,4 +1,4 @@
-import prisma from '~/lib/prisma'
+﻿import prisma from '~/lib/prisma'
 import { requireAuth } from '~/lib/auth'
 import { createLogger } from '~/lib/logger'
 
@@ -27,10 +27,14 @@ export default defineEventHandler(async (event) => {
         url,
         description,
         isActive,
-        order: order || 0,
+        order: typeof order === 'number' ? order : 0,
         userId: user.userId
       }
     })
+
+    if (event.node?.res) {
+      event.node.res.statusCode = 201
+    }
 
     return {
       id: link.id,
@@ -42,10 +46,19 @@ export default defineEventHandler(async (event) => {
       createdAt: link.createdAt
     }
   } catch (error) {
-    log.error('Error creating link', { error: (error as Error).message })
+    const message = (error as Error).message
+
+    log.error('Error creating link', { error: message })
+
+    const typedError = error as { statusCode?: number }
+    if (typeof typedError?.statusCode === 'number') {
+      throw error
+    }
+
     throw createError({
       statusCode: 500,
       statusMessage: 'Fehler beim Erstellen des Links'
     })
   }
 })
+
