@@ -130,11 +130,12 @@ describe("lib/logger", () => {
     const loggerModule = await loadLoggerModule()
 
     expect(winstonMocks.createLogger).toHaveBeenCalledTimes(1)
-    const config = winstonMocks.createLogger.mock.calls[0][0] as LoggerConfig
+    const config = winstonMocks.createLogger.mock.calls[0]?.[0] as LoggerConfig
+    expect(config).toBeDefined()
 
-    expect(config.level).toBe("debug")
-    expect(config.defaultMeta).toEqual({ service: "linxz" })
-    expect(config.levels).toMatchObject({
+    expect(config!.level).toBe("debug")
+    expect(config!.defaultMeta).toEqual({ service: "linxz" })
+    expect(config!.levels).toMatchObject({
       emerg: 0,
       alert: 1,
       crit: 2,
