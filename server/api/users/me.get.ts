@@ -34,6 +34,12 @@ export default defineEventHandler(async (event) => {
     return userData
   } catch (error) {
     log.error('Error fetching user profile', { error: (error as Error).message })
+
+    const statusCode = (error as { statusCode?: number }).statusCode
+    if (typeof statusCode === 'number') {
+      throw error
+    }
+
     throw createError({
       statusCode: 500,
       statusMessage: 'Fehler beim Abrufen des User-Profils'
