@@ -271,6 +271,46 @@ describe('User Store', () => {
       expect(userStore.error).toBe('Fehler beim Laden der Links')
       expect(userStore.userLinks).toEqual([])
     })
+    it('clears session when API responds with 401', async () => {
+      userStore.currentUser = {
+        id: '1',
+        username: 'tester',
+        email: 'tester@example.com',
+        createdAt: new Date(),
+        isAuthenticated: true
+      }
+      storage.set('auth-token', 'token')
+      const unauthorizedError = Object.assign(new Error('Nicht authentifiziert'), { statusCode: 401 })
+      fetchMock.mockRejectedValueOnce(unauthorizedError)
+
+      await userStore.loadUserLinks()
+
+      expect(userStore.currentUser).toBeNull()
+      expect(userStore.userLinks).toEqual([])
+      expect(userStore.error).toBe('Nicht authentifiziert')
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('auth-token')
+    })
+
+    it('marks other client errors as invalid request', async () => {
+      userStore.currentUser = {
+        id: '1',
+        username: 'tester',
+        email: 'tester@example.com',
+        createdAt: new Date(),
+        isAuthenticated: true
+      }
+      storage.set('auth-token', 'token')
+      const clientError = Object.assign(new Error('Bad request'), { statusCode: 422 })
+      fetchMock.mockRejectedValueOnce(clientError)
+
+      await userStore.loadUserLinks()
+
+      expect(userStore.currentUser).not.toBeNull()
+      expect(userStore.userLinks).toEqual([])
+      expect(userStore.error).toBe('Ungueltige Anfrage')
+      expect(localStorageMock.removeItem).not.toHaveBeenCalled()
+    })
+
   })
 
   describe('addLink', () => {

@@ -175,8 +175,26 @@ export const useUserStore = defineStore('user', {
         }))
         
       } catch (error) {
-        this.error = 'Fehler beim Laden der Links'
-        log.error('Load links failed', { error: (error as Error).message })
+        const maybeError = error as { statusCode?: number }
+        const statusCode = typeof maybeError?.statusCode === 'number' ? maybeError.statusCode : undefined
+        const message = error instanceof Error ? error.message : String(error)
+
+        log.error('Load links failed', { error: message, statusCode })
+
+        if (statusCode === 401 || statusCode === 403) {
+          this.currentUser = null
+          this.userLinks = []
+          this.error = 'Nicht authentifiziert'
+          localStorage.removeItem('auth-token')
+          return
+        }
+
+        if (statusCode && statusCode < 500) {
+          this.error = 'Ungueltige Anfrage'
+        } else {
+          this.error = 'Fehler beim Laden der Links'
+        }
+
         this.userLinks = []
       } /* istanbul ignore next */ finally {
         this.isLoading = false
