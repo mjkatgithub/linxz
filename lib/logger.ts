@@ -2,13 +2,20 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, import/no-mutable-exports
 let logger: any = null
 
+type WinstonModule = typeof import('winston')
+type LoggerConfig = Parameters<WinstonModule['createLogger']>[0]
+
+const channelLoggerCache = new Map<string, ChannelLogger>()
+let forceInitialization = false
+let customWinstonFactory: (() => WinstonModule) | null = null
+let lastLoggerConfig: LoggerConfig | null = null
+
 // Server-Side Logger initialisieren
 function initLogger() {
-  if (import.meta.server && !logger) {
+  const isNodeRuntime = typeof process !== 'undefined' && process.release?.name === 'node'
+  if ((import.meta.server || isNodeRuntime || forceInitialization) && !logger) {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const winston = require('winston')
-      
+      const winston = customWinstonFactory ? customWinstonFactory() : loadNativeWinston()
       // Syslog Log Levels (RFC 3164)
       const syslogLevels = {
         emerg: 0,   // System is unusable
@@ -21,51 +28,53 @@ function initLogger() {
         debug: 7    // Debug-level messages
       }
 
-      // Logger-Konfiguration
-      logger = winston.createLogger({
+      const config: LoggerConfig = {
         levels: syslogLevels,
         level: process.env.LOG_LEVEL || 'info',
         defaultMeta: { service: 'linxz' },
         transports: [
-          // Console Transport mit Pretty Print
           new winston.transports.Console({
             format: winston.format.combine(
               winston.format.timestamp({
                 format: 'YYYY-MM-DD HH:mm:ss'
               }),
               winston.format.errors({ stack: false }),
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              winston.format.printf(({ timestamp, level, message, ...meta }: any) => {
-                // Erste Zeile: Timestamp + Level + Message
+              winston.format.printf(({ timestamp, level, message, ...meta }) => {
                 const firstLine = `${timestamp} ${level}: ${message}`
-                
-                // Zweite Zeile: Strukturierte Daten (ohne Stack)
-                const { stack, ...contextData } = meta
+                const { stack, ...contextData } = meta as Record<string, unknown>
                 const secondLine = JSON.stringify(contextData, null, 2)
-                
+
                 return `${firstLine}\n${secondLine}`
               })
             )
           })
         ]
-      })
+      }
+
+      logger = winston.createLogger(config)
+      lastLoggerConfig = config
     } catch {
-      // Fallback für Client-Side
       console.warn('Winston logger not available on client-side')
+    } finally {
+      forceInitialization = false
     }
+  } else {
+    forceInitialization = false
   }
 }
 
-// Logger initialisieren
 initLogger()
 
-// Automatische Datei-Erkennung (ähnlich wie Monolog Processors)
+function loadNativeWinston(): WinstonModule {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  return require('winston') as WinstonModule
+}
+
 function getCallerInfo(): { file: string; line: number } {
   const stack = new Error().stack
   if (!stack) return { file: 'unknown', line: 0 }
-  
+
   const lines = stack.split('\n')
-  // Suche nach der ersten Zeile, die nicht aus dem Logger kommt
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i]
     if (line && !line.includes('lib/logger.ts') && !line.includes('node_modules')) {
@@ -74,18 +83,16 @@ function getCallerInfo(): { file: string; line: number } {
         const filePath = match[1] || match[3]
         const lineNumber = parseInt(match[2] || match[4])
         if (filePath) {
-          // Extrahiere nur den Dateinamen
           const fileName = filePath.split('/').pop() || filePath.split('\\').pop() || 'unknown'
           return { file: fileName, line: lineNumber }
         }
       }
     }
   }
-  
+
   return { file: 'unknown', line: 0 }
 }
 
-// Channel-spezifische Logger-Klasse
 class ChannelLogger {
   private channel: string
 
@@ -95,19 +102,18 @@ class ChannelLogger {
 
   private log(level: string, message: string, context?: Record<string, unknown>) {
     if (!logger) {
-      // Fallback für Client-Side
       console.log(`[${this.channel}] ${level.toUpperCase()}: ${message}`, context)
       return
     }
-    
+
     const callerInfo = getCallerInfo()
-    const meta: Record<string, unknown> = { 
+    const meta: Record<string, unknown> = {
       channel: this.channel,
       file: callerInfo.file,
       line: callerInfo.line,
-      ...context 
+      ...context
     }
-    
+
     logger.log(level, message, meta)
   }
 
@@ -144,11 +150,35 @@ class ChannelLogger {
   }
 }
 
-// Logger-Factory für Channel-spezifische Logger
 export const createLogger = (channel: string) => {
-  return new ChannelLogger(channel)
+  if (!channelLoggerCache.has(channel)) {
+    channelLoggerCache.set(channel, new ChannelLogger(channel))
+  }
+
+  return channelLoggerCache.get(channel) as ChannelLogger
 }
 
-
+export const __testHooks = {
+  reset() {
+    channelLoggerCache.clear()
+    logger = null
+    lastLoggerConfig = null
+  },
+  init(options?: { force?: boolean }) {
+    if (options?.force) {
+      forceInitialization = true
+    }
+    initLogger()
+  },
+  setWinstonFactory(factory?: () => WinstonModule) {
+    customWinstonFactory = factory ?? null
+    logger = null
+  },
+  getLastConfig() {
+    return lastLoggerConfig
+  }
+}
 
 export default logger
+
+export type { WinstonModule, LoggerConfig }
