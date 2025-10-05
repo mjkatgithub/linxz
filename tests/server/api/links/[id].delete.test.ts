@@ -122,6 +122,29 @@ describe('DELETE /api/links/:id', () => {
     expect(createErrorMock).not.toHaveBeenCalled()
   })
 
+  it('returns 400 when id param is not numeric', async () => {
+    const { handler, prisma, logger } = await importDeleteHandler()
+    const event = createEvent()
+
+    requireAuthMock.mockReturnValue({ userId: 1 })
+    getRouterParamMock.mockReturnValue('invalid')
+
+    await expect(handler(event)).rejects.toMatchObject({
+      statusCode: 400,
+      statusMessage: 'Missing route param id'
+    })
+
+    expect(prisma.link.findFirst).not.toHaveBeenCalled()
+    expect(prisma.link.delete).not.toHaveBeenCalled()
+    expect(createErrorMock).toHaveBeenCalledWith({
+      statusCode: 400,
+      statusMessage: 'Missing route param id'
+    })
+    expect(logger.error).toHaveBeenCalledWith('Error deleting link', {
+      error: 'Missing route param id'
+    })
+  })
+
   it('returns 400 when id param is missing', async () => {
     const { handler, prisma, logger } = await importDeleteHandler()
     const event = createEvent()

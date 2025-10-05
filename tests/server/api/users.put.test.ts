@@ -227,6 +227,36 @@ describe('PUT /api/users', () => {
     expect(result).toEqual(updatedUser)
   })
 
+  it('rejects username change when the desired username is taken', async () => {
+    requireAuthMock.mockReturnValue({
+      userId: 'user-900',
+      username: 'current-user'
+    })
+
+    readBodyMock.mockResolvedValue({
+      username: 'existing-user'
+    })
+
+    const { handler, prisma } = await importUsersHandler()
+    const event = createEvent()
+
+    prisma.user.findUnique.mockResolvedValueOnce({ id: 'other-user' })
+
+    await expect(handler(event)).rejects.toMatchObject({
+      statusCode: 409,
+      statusMessage: 'Username bereits vergeben'
+    })
+
+    expect(prisma.user.findUnique).toHaveBeenCalledWith({
+      where: { username: 'existing-user' }
+    })
+    expect(prisma.user.update).not.toHaveBeenCalled()
+    expect(createErrorMock).toHaveBeenCalledWith({
+      statusCode: 409,
+      statusMessage: 'Username bereits vergeben'
+    })
+  })
+
   it('throws when current password is incorrect', async () => {
     requireAuthMock.mockReturnValue({
       userId: 'user-789',
@@ -257,6 +287,40 @@ describe('PUT /api/users', () => {
     expect(createErrorMock).toHaveBeenCalledWith({
       statusCode: 401,
       statusMessage: 'Aktuelles Passwort ist falsch'
+    })
+  })
+
+  it('returns 404 when user lookup during password change fails', async () => {
+    requireAuthMock.mockReturnValue({
+      userId: 'user-901',
+      username: 'demo-user'
+    })
+
+    readBodyMock.mockResolvedValue({
+      currentPassword: 'current-secret',
+      newPassword: 'new-secret'
+    })
+
+    const { handler, prisma } = await importUsersHandler()
+    const event = createEvent()
+
+    prisma.user.findUnique.mockResolvedValueOnce(null)
+
+    await expect(handler(event)).rejects.toMatchObject({
+      statusCode: 404,
+      statusMessage: 'User nicht gefunden'
+    })
+
+    expect(prisma.user.findUnique).toHaveBeenCalledWith({
+      where: { id: 'user-901' },
+      select: { password: true }
+    })
+    expect(prisma.user.update).not.toHaveBeenCalled()
+    expect(verifyPasswordMock).not.toHaveBeenCalled()
+    expect(hashPasswordMock).not.toHaveBeenCalled()
+    expect(createErrorMock).toHaveBeenCalledWith({
+      statusCode: 404,
+      statusMessage: 'User nicht gefunden'
     })
   })
 
