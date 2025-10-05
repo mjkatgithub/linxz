@@ -202,4 +202,217 @@ describe("lib/logger", () => {
     expect(winstonMocks.log).not.toHaveBeenCalled()
     expect(winstonMocks.createLogger).not.toHaveBeenCalled()
   })
+
+  it("logs all syslog levels correctly", async () => {
+    const loggerModule = await loadLoggerModule()
+    const testLogger = loggerModule.createLogger("test")
+
+    testLogger.emerg("system down", { cpu: 100 })
+    testLogger.alert("database full", { usage: "99%" })
+    testLogger.crit("memory leak", { heap: "2GB" })
+    testLogger.warning("slow query", { duration: "5s" })
+    testLogger.notice("user login", { userId: 123 })
+    testLogger.debug("debug info", { temp: "data" })
+
+    expect(winstonMocks.log).toHaveBeenCalledTimes(6)
+    
+    expect(winstonMocks.log.mock.calls[0]).toEqual([
+      "emerg",
+      "system down",
+      expect.objectContaining({ channel: "test", cpu: 100 })
+    ])
+    expect(winstonMocks.log.mock.calls[1]).toEqual([
+      "alert", 
+      "database full",
+      expect.objectContaining({ channel: "test", usage: "99%" })
+    ])
+    expect(winstonMocks.log.mock.calls[2]).toEqual([
+      "crit",
+      "memory leak", 
+      expect.objectContaining({ channel: "test", heap: "2GB" })
+    ])
+    expect(winstonMocks.log.mock.calls[3]).toEqual([
+      "warning",
+      "slow query",
+      expect.objectContaining({ channel: "test", duration: "5s" })
+    ])
+    expect(winstonMocks.log.mock.calls[4]).toEqual([
+      "notice",
+      "user login",
+      expect.objectContaining({ channel: "test", userId: 123 })
+    ])
+    expect(winstonMocks.log.mock.calls[5]).toEqual([
+      "debug",
+      "debug info", 
+      expect.objectContaining({ channel: "test", temp: "data" })
+    ])
+  })
+
+  it("falls back to console logging for all levels when winston throws", async () => {
+    winstonMocks.shouldThrow = true
+
+    const loggerModule = await loadLoggerModule()
+    const fallbackLogger = loggerModule.createLogger("fallback")
+
+    fallbackLogger.emerg("emergency", { critical: true })
+    fallbackLogger.alert("alert", { urgent: true })
+    fallbackLogger.crit("critical", { severity: "high" })
+    fallbackLogger.warning("warning", { level: "medium" })
+    fallbackLogger.notice("notice", { info: "normal" })
+    fallbackLogger.debug("debug", { verbose: true })
+
+    // Winston warning is only shown once during initialization
+    expect(consoleWarnSpy).toHaveBeenCalledTimes(1)
+    expect(consoleWarnSpy).toHaveBeenCalledWith("Winston logger not available on client-side")
+    
+    expect(consoleLogSpy).toHaveBeenCalledWith("[fallback] EMERG: emergency", { critical: true })
+    expect(consoleLogSpy).toHaveBeenCalledWith("[fallback] ALERT: alert", { urgent: true })
+    expect(consoleLogSpy).toHaveBeenCalledWith("[fallback] CRIT: critical", { severity: "high" })
+    expect(consoleLogSpy).toHaveBeenCalledWith("[fallback] WARNING: warning", { level: "medium" })
+    expect(consoleLogSpy).toHaveBeenCalledWith("[fallback] NOTICE: notice", { info: "normal" })
+    expect(consoleLogSpy).toHaveBeenCalledWith("[fallback] DEBUG: debug", { verbose: true })
+  })
+
+  it("handles logging without context parameter", async () => {
+    const loggerModule = await loadLoggerModule()
+    const testLogger = loggerModule.createLogger("simple")
+
+    testLogger.info("simple message")
+    testLogger.error("error without context")
+    testLogger.debug("debug message")
+
+    expect(winstonMocks.log).toHaveBeenCalledTimes(3)
+    expect(winstonMocks.log.mock.calls[0]).toEqual([
+      "info",
+      "simple message",
+      expect.objectContaining({ channel: "simple" })
+    ])
+    expect(winstonMocks.log.mock.calls[1]).toEqual([
+      "error", 
+      "error without context",
+      expect.objectContaining({ channel: "simple" })
+    ])
+    expect(winstonMocks.log.mock.calls[2]).toEqual([
+      "debug",
+      "debug message",
+      expect.objectContaining({ channel: "simple" })
+    ])
+  })
+
+  it("includes caller information in log metadata", async () => {
+    const loggerModule = await loadLoggerModule()
+    const testLogger = loggerModule.createLogger("caller-test")
+
+    testLogger.info("test with caller info", { customData: "value" })
+
+    expect(winstonMocks.log).toHaveBeenCalledTimes(1)
+    const logCall = winstonMocks.log.mock.calls[0]
+    
+    expect(logCall[0]).toBe("info")
+    expect(logCall[1]).toBe("test with caller info")
+    expect(logCall[2]).toEqual(expect.objectContaining({
+      channel: "caller-test",
+      file: expect.any(String),
+      line: expect.any(Number),
+      customData: "value"
+    }))
+    
+    // Verify file is not "unknown" and line is a positive number
+    const metadata = logCall[2] as Record<string, unknown>
+    expect(metadata.file).not.toBe("unknown")
+    expect(metadata.line).toBeGreaterThan(0)
+  })
+
+  it("handles different log levels with caller information", async () => {
+    const loggerModule = await loadLoggerModule()
+    const testLogger = loggerModule.createLogger("multi-level")
+
+    testLogger.emerg("emergency", { critical: true })
+    testLogger.warning("warning", { level: "medium" })
+    testLogger.debug("debug", { verbose: true })
+
+    expect(winstonMocks.log).toHaveBeenCalledTimes(3)
+    
+    // Check that all calls include file and line information
+    for (let i = 0; i < 3; i++) {
+      const metadata = winstonMocks.log.mock.calls[i][2] as Record<string, unknown>
+      expect(metadata).toHaveProperty("file")
+      expect(metadata).toHaveProperty("line")
+      expect(metadata.file).not.toBe("unknown")
+      expect(metadata.line).toBeGreaterThan(0)
+    }
+  })
+
+  it("handles test hooks reset and initialization", async () => {
+    const loggerModule = await loadLoggerModule()
+    
+    // Create a logger to populate cache
+    const logger1 = loggerModule.createLogger("cache-test")
+    logger1.info("test message")
+    
+    expect(winstonMocks.log).toHaveBeenCalledTimes(1)
+    
+    // Reset and reinitialize
+    loggerModule.__testHooks.reset()
+    loggerModule.__testHooks.setWinstonFactory(buildWinstonFactory)
+    loggerModule.__testHooks.init({ force: true })
+    
+    // Create new logger after reset
+    const logger2 = loggerModule.createLogger("cache-test-2")
+    logger2.error("after reset")
+    
+    expect(winstonMocks.log).toHaveBeenCalledTimes(2)
+    expect(winstonMocks.createLogger).toHaveBeenCalledTimes(2)
+  })
+
+  it("handles test hooks without force option", async () => {
+    const loggerModule = await loadLoggerModule()
+    
+    // Test init without force
+    loggerModule.__testHooks.init()
+    
+    const testLogger = loggerModule.createLogger("no-force")
+    testLogger.info("no force test")
+    
+    expect(winstonMocks.log).toHaveBeenCalledTimes(1)
+  })
+
+  it("handles test hooks with null factory", async () => {
+    const loggerModule = await loadLoggerModule()
+    
+    // Set factory to null and reset to force reinitialization
+    // @ts-expect-error - Testing null factory behavior
+    loggerModule.__testHooks.setWinstonFactory(null)
+    loggerModule.__testHooks.init({ force: true })
+    
+    const testLogger = loggerModule.createLogger("null-factory")
+    testLogger.info("null factory test")
+    
+    // With null factory, it should use native winston (not our mock)
+    // The native winston doesn't call our mocks, but the logger should still work
+    expect(winstonMocks.log).toHaveBeenCalledTimes(0)
+    // We can verify the logger was created successfully by checking it exists
+    expect(testLogger).toBeDefined()
+    expect(typeof testLogger.info).toBe("function")
+  })
+
+  it("handles empty context object", async () => {
+    const loggerModule = await loadLoggerModule()
+    const testLogger = loggerModule.createLogger("empty-context")
+
+    testLogger.info("message with empty context", {})
+    testLogger.error("message with null context", null as any)
+
+    expect(winstonMocks.log).toHaveBeenCalledTimes(2)
+    
+    const firstCall = winstonMocks.log.mock.calls[0]
+    expect(firstCall[2]).toEqual(expect.objectContaining({
+      channel: "empty-context"
+    }))
+    
+    const secondCall = winstonMocks.log.mock.calls[1]
+    expect(secondCall[2]).toEqual(expect.objectContaining({
+      channel: "empty-context"
+    }))
+  })
 })
