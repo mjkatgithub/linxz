@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Prüfe ob User bereits existiert
+    // PrOfe ob User bereits existiert
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
@@ -79,6 +79,12 @@ export default defineEventHandler(async (event) => {
       error: (error as Error).message,
       stack: (error as Error).stack
     })
+
+    const statusCode = (error as { statusCode?: number })?.statusCode
+    if (typeof statusCode === 'number') {
+      throw error
+    }
+
     throw createError({
       statusCode: 500,
       statusMessage: 'Fehler beim Erstellen des Users'
