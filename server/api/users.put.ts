@@ -89,6 +89,12 @@ export default defineEventHandler(async (event) => {
     return updatedUser
   } catch (error) {
     log.error('Error updating user', { error: (error as Error).message })
+
+    const statusCode = (error as { statusCode?: number }).statusCode
+    if (typeof statusCode === 'number') {
+      throw error
+    }
+
     throw createError({
       statusCode: 500,
       statusMessage: 'Fehler beim Aktualisieren des Users'
