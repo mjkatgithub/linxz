@@ -1,86 +1,79 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-// Mock vue-toastification
+type VitestMock = ReturnType<typeof vi.fn>
+
+declare global {
+  var defineNuxtPlugin: VitestMock
+}
+
+const toastPluginMock = { name: 'VueToastificationMock' }
+
 vi.mock('vue-toastification', () => ({
-  default: {
-    name: 'vue-toastification',
-    install: vi.fn()
-  }
+  default: toastPluginMock
 }))
 
-// Mock CSS import
 vi.mock('vue-toastification/dist/index.css', () => ({}))
 
-// Mock defineNuxtPlugin globally
-;(global as any).defineNuxtPlugin = vi.fn((plugin: any) => plugin)
+const defineNuxtPluginMock = globalThis.defineNuxtPlugin
 
-describe('Toastr Client Plugin', () => {
+const loadPlugin = async () => {
+  const module = await import('~/plugins/toastr.client')
+  return module.default
+}
+
+describe('plugins/toastr.client', () => {
   beforeEach(() => {
+    vi.resetModules()
     vi.clearAllMocks()
   })
 
-  it('should be a valid plugin file', async () => {
-    // Import the plugin
-    const pluginModule = await import('~/plugins/toastr.client')
-    
-    // Check that the module exists and has a default export
-    expect(pluginModule).toBeDefined()
-    expect(pluginModule.default).toBeDefined()
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
-  it('should define a Nuxt plugin', async () => {
-    // Import the plugin
-    const pluginModule = await import('~/plugins/toastr.client')
-    
-    // Check that the plugin exists
-    expect(pluginModule.default).toBeDefined()
+  it('registers Toast with expected options via defineNuxtPlugin', async () => {
+    const plugin = await loadPlugin()
+
+    expect(defineNuxtPluginMock).toHaveBeenCalledTimes(1)
+    expect(typeof plugin).toBe('function')
+
+    const useMock = vi.fn()
+    const nuxtApp = { vueApp: { use: useMock } }
+
+    plugin(nuxtApp as any)
+
+    expect(useMock).toHaveBeenCalledTimes(1)
+    const [factory, options] = useMock.mock.calls[0]
+    expect(factory).toBe(toastPluginMock)
+    expect(options).toEqual({
+      position: 'top-right',
+      timeout: 5000,
+      closeOnClick: true,
+      pauseOnFocusLoss: true,
+      pauseOnHover: true,
+      draggable: true,
+      draggablePercent: 0.6,
+      showCloseButtonOnHover: false,
+      hideProgressBar: false,
+      closeButton: 'button',
+      icon: true,
+      rtl: false
+    })
   })
 
-  it('should have correct plugin structure', async () => {
-    // Import the plugin
-    const pluginModule = await import('~/plugins/toastr.client')
-    
-    // Check that it's a function (plugin)
-    expect(typeof pluginModule.default).toBe('function')
-  })
+  it('swallows installation errors and logs them', async () => {
+    const plugin = await loadPlugin()
 
-  it('should import vue-toastification correctly', async () => {
-    // Import the plugin
-    const pluginModule = await import('~/plugins/toastr.client')
-    
-    // The plugin should be defined without errors
-    expect(pluginModule.default).toBeDefined()
-  })
+    const installError = new Error('failed to install Toast')
+    const useMock = vi.fn(() => {
+      throw installError
+    })
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-  it('should be a valid plugin function', async () => {
-    // Import the plugin
-    const pluginModule = await import('~/plugins/toastr.client')
-    
-    // Check that it's a function
-    expect(typeof pluginModule.default).toBe('function')
-  })
+    expect(() => plugin({ vueApp: { use: useMock } } as any)).not.toThrow()
 
-  it('should handle plugin definition', async () => {
-    // Import the plugin
-    const pluginModule = await import('~/plugins/toastr.client')
-    
-    // Verify plugin was defined
-    expect(typeof pluginModule.default).toBe('function')
-  })
-
-  it('should work with mocked dependencies', async () => {
-    // Import the plugin
-    const pluginModule = await import('~/plugins/toastr.client')
-    
-    // Verify that the plugin was defined successfully
-    expect(pluginModule.default).toBeDefined()
-  })
-
-  it('should handle CSS import', async () => {
-    // Import the plugin
-    const pluginModule = await import('~/plugins/toastr.client')
-    
-    // The plugin should be defined without CSS import errors
-    expect(pluginModule.default).toBeDefined()
+    expect(useMock).toHaveBeenCalledTimes(1)
+    expect(consoleErrorSpy).toHaveBeenCalledWith('[toastr.client plugin] Toast installation failed', installError)
   })
 })
+
