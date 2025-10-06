@@ -1,79 +1,65 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// Mock useUserStore
-const mockUserStore = {
-  checkAuth: vi.fn()
+type VitestMock = ReturnType<typeof vi.fn>
+
+declare global {
+  // Provided via tests/setup.ts
+  var defineNuxtPlugin: VitestMock
+  var useHead: VitestMock
 }
 
-vi.mock('~/stores/user', () => ({
-  useUserStore: () => mockUserStore
-}))
+const storeMocks = vi.hoisted(() => {
+  const checkAuth = vi.fn()
+  const useUserStore = vi.fn(() => ({ checkAuth }))
+  return { checkAuth, useUserStore }
+})
 
-// Mock defineNuxtPlugin globally
-;(global as any).defineNuxtPlugin = vi.fn((plugin: any) => plugin)
+vi.mock('~/stores/user', () => storeMocks)
 
-describe('Auth Client Plugin', () => {
+const defineNuxtPluginMock = globalThis.defineNuxtPlugin
+const useHeadMock = globalThis.useHead
+
+const loadPlugin = async () => {
+  const module = await import('~/plugins/auth.client')
+  return module.default
+}
+
+describe('plugins/auth.client', () => {
   beforeEach(() => {
+    vi.resetModules()
     vi.clearAllMocks()
+
+    storeMocks.checkAuth.mockReset()
+    storeMocks.useUserStore.mockReset()
+    storeMocks.useUserStore.mockImplementation(() => ({ checkAuth: storeMocks.checkAuth }))
   })
 
-  it('should be a valid plugin file', async () => {
-    // Import the plugin
-    const pluginModule = await import('~/plugins/auth.client')
-    
-    // Check that the module exists and has a default export
-    expect(pluginModule).toBeDefined()
-    expect(pluginModule.default).toBeDefined()
+  it('registers an async plugin via defineNuxtPlugin', async () => {
+    const plugin = await loadPlugin()
+
+    expect(defineNuxtPluginMock).toHaveBeenCalledTimes(1)
+    expect(typeof plugin).toBe('function')
+    expect(plugin.constructor.name).toBe('AsyncFunction')
+    expect(useHeadMock).not.toHaveBeenCalled()
   })
 
-  it('should define a Nuxt plugin', async () => {
-    // Import the plugin
-    const pluginModule = await import('~/plugins/auth.client')
-    
-    // Check that the plugin exists
-    expect(pluginModule.default).toBeDefined()
+  it('checks authentication when the plugin runs', async () => {
+    storeMocks.checkAuth.mockResolvedValue(true)
+    const plugin = await loadPlugin()
+
+    await plugin({} as any)
+
+    expect(storeMocks.useUserStore).toHaveBeenCalledTimes(1)
+    expect(storeMocks.checkAuth).toHaveBeenCalledTimes(1)
   })
 
-  it('should have correct plugin structure', async () => {
-    // Import the plugin
-    const pluginModule = await import('~/plugins/auth.client')
-    
-    // Check that it's a function (plugin)
-    expect(typeof pluginModule.default).toBe('function')
-  })
+  it('swallows errors from checkAuth to keep app startup stable', async () => {
+    const failure = new Error('auth failed')
+    storeMocks.checkAuth.mockRejectedValue(failure)
+    const plugin = await loadPlugin()
 
-  it('should import user store correctly', async () => {
-    // Import the plugin
-    const pluginModule = await import('~/plugins/auth.client')
-    
-    // The plugin should be defined without errors
-    expect(pluginModule.default).toBeDefined()
-  })
+    await expect(plugin({} as any)).resolves.toBeUndefined()
 
-  it('should be an async plugin', async () => {
-    // Import the plugin
-    const pluginModule = await import('~/plugins/auth.client')
-    
-    // Check that the plugin function is async
-    expect(pluginModule.default.constructor.name).toBe('AsyncFunction')
-  })
-
-  it('should handle plugin definition', async () => {
-    // Import the plugin
-    const pluginModule = await import('~/plugins/auth.client')
-    
-    // Verify plugin was defined
-    expect(typeof pluginModule.default).toBe('function')
-  })
-
-  it('should work with mocked dependencies', async () => {
-    // Mock checkAuth to resolve
-    mockUserStore.checkAuth.mockResolvedValue(undefined)
-    
-    // Import the plugin
-    const pluginModule = await import('~/plugins/auth.client')
-    
-    // Verify that the plugin was defined successfully
-    expect(pluginModule.default).toBeDefined()
+    expect(storeMocks.checkAuth).toHaveBeenCalledTimes(1)
   })
 })
