@@ -2,6 +2,7 @@
 import { config } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { vi } from 'vitest'
+import { ref as vueRef } from 'vue'
 
 // Chai should-style assertions
 import * as chai from 'chai'
@@ -48,6 +49,23 @@ const defineNuxtPluginMock = vi.fn((plugin: any) => plugin)
 ;(globalThis as any).defineNuxtPlugin = defineNuxtPluginMock
 const useHeadMock = vi.fn()
 ;(globalThis as any).useHead = useHeadMock
+
+// Also expose common composables globally for SFCs that access them without explicit import
+const globalUseRoute = vi.fn(() => ({
+  params: {},
+  query: {},
+  path: '/',
+  name: 'index'
+}))
+const globalUseRouter = vi.fn(() => ({
+  push: vi.fn(),
+  replace: vi.fn(),
+  go: vi.fn(),
+  back: vi.fn(),
+  forward: vi.fn()
+}))
+;(globalThis as any).useRoute = globalUseRoute
+;(globalThis as any).useRouter = globalUseRouter
 
 // Mock Prisma
 vi.mock('~/lib/prisma', () => ({
@@ -126,3 +144,5 @@ Object.defineProperty(window, 'sessionStorage', {
   writable: true
 })
 
+// Provide Vue ref globally for SFCs using auto-imports without transforms
+;(globalThis as any).ref = vueRef
