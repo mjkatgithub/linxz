@@ -13,8 +13,11 @@ chai.use(chaiAsPromised)
 chai.use(sinonChai)
 
 // Mock Nuxt environment
+const navigateToMock = vi.fn()
 vi.mock('#app', () => ({
-  navigateTo: vi.fn(),
+  // Provide NuxtLayout so <NuxtLayout> in pages renders its default slot
+  NuxtLayout: { name: 'NuxtLayout', template: '<div><slot /></div>' },
+  navigateTo: navigateToMock,
   useRuntimeConfig: vi.fn(() => ({
     public: {
       apiBase: 'http://localhost:3000/api'
@@ -49,6 +52,8 @@ const defineNuxtPluginMock = vi.fn((plugin: any) => plugin)
 ;(globalThis as any).defineNuxtPlugin = defineNuxtPluginMock
 const useHeadMock = vi.fn()
 ;(globalThis as any).useHead = useHeadMock
+// Expose navigateTo globally for SFCs that reference it without import (no Nuxt transform in tests)
+;(globalThis as any).navigateTo = navigateToMock
 
 // Also expose common composables globally for SFCs that access them without explicit import
 const globalUseRoute = vi.fn(() => ({
@@ -118,6 +123,8 @@ vi.mock('~/lib/logger', () => {
 
 // Global Vue Test Utils config
 config.global.plugins = [createPinia()]
+// Ensure VTU default stubs render their default slot content
+;(config as any).renderStubDefaultSlot = true
 
 // Mock fetch for API tests
 global.fetch = vi.fn()

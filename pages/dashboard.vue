@@ -255,19 +255,23 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import { useUserStore } from '~/stores/user'
 import { useAppStore } from '~/stores/app'
 
 const userStore = useUserStore()
 const appStore = useAppStore()
 
-// Redirect wenn nicht eingeloggt
-if (!userStore.isLoggedIn) {
-  await navigateTo('/login')
-}
-
 // Laden der Links beim Mount
-await userStore.loadUserLinks()
+onMounted(async () => {
+  // Redirect wenn nicht eingeloggt
+  if (!userStore.isLoggedIn) {
+    await navigateTo('/login')
+    return
+  }
+  
+  await userStore.loadUserLinks()
+})
 
 // Dialog State
 const showAddLinkDialog = ref(false)

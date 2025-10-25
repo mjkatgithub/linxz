@@ -13,6 +13,11 @@ declare module '*.vue' {
 declare module 'vue' {
   interface ComponentCustomProperties {
     $nextTick: typeof import('vue').nextTick
+    // Allow tests to inject partial router/route without TS noise
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    $router?: any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    $route?: any
   }
 }
 
@@ -54,6 +59,13 @@ declare global {
     page?: import('playwright').Page
     context?: import('playwright').BrowserContext
   }
+}
+
+// Provide minimal typings to support rare casts like `vi.Mock` in tests
+// (some editors flag lowercase `vi` vs `Vi` namespace; this makes both work)
+declare namespace vi {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  type Mock = any
 }
 
 export {}
