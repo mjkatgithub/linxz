@@ -124,7 +124,8 @@ vi.mock('~/lib/logger', () => {
 // Global Vue Test Utils config
 config.global.plugins = [createPinia()]
 // Ensure VTU default stubs render their default slot content
-;(config as any).renderStubDefaultSlot = true
+config.global = config.global || ({} as any)
+;(config.global as any).renderStubDefaultSlot = true
 
 // Mock fetch for API tests
 global.fetch = vi.fn()

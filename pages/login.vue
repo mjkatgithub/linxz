@@ -60,6 +60,7 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import { useUserStore } from '~/stores/user'
 import { useAppStore } from '~/stores/app'
 
@@ -85,8 +86,10 @@ async function handleLogin() {
   }
 }
 
-// Redirect wenn bereits eingeloggt
-if (userStore.isLoggedIn) {
-  await navigateTo('/dashboard')
-}
+// Redirect wenn bereits eingeloggt (auf Mount, um async setup zu vermeiden)
+onMounted(async () => {
+  if (userStore.isLoggedIn) {
+    await navigateTo('/dashboard')
+  }
+})
 </script> 
