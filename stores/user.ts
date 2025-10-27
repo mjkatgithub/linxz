@@ -79,6 +79,14 @@ export const useUserStore = defineStore('user', {
         // Lade die Links des Benutzers
         await this.loadUserLinks()
         
+        // Lade vollständige Profildaten nach Login
+        const profileData = await this.loadProfile()
+        if (profileData && this.currentUser) {
+          this.currentUser.name = profileData.name || undefined
+          this.currentUser.bio = profileData.bio || undefined
+          this.currentUser.avatar = profileData.avatar || undefined
+        }
+        
         // Toastr Success
         const toast = useToast()
         toast.success('Erfolgreich angemeldet!')

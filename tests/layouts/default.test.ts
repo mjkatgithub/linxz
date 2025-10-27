@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import DefaultLayout from '~/layouts/default.vue'
@@ -9,6 +9,25 @@ vi.mock('~/components/NotificationSystem.vue', () => ({
     name: 'NotificationSystem',
     template: '<div data-testid="notification-system">Notifications</div>'
   }
+}))
+
+// Mock AppHeader
+vi.mock('~/components/AppHeader.vue', () => ({
+  default: {
+    name: 'AppHeader',
+    template: '<div data-testid="app-header">Header</div>'
+  }
+}))
+
+// Mock useRoute
+const mockRoute = {
+  path: '/',
+  query: {},
+  params: {}
+}
+
+vi.mock('vue-router', () => ({
+  useRoute: () => mockRoute
 }))
 
 // Mock Vuetify components

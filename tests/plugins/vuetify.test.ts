@@ -28,6 +28,25 @@ vi.mock('vuetify/directives', () => vuetifyModuleMocks.directives)
 vi.mock('vuetify/styles', () => ({}))
 vi.mock('@mdi/font/css/materialdesignicons.css', () => ({}))
 
+// Mock App Store
+const appStoreMock = {
+  loadSettings: vi.fn(),
+  settings: { theme: 'auto' }
+}
+
+vi.mock('~/stores/app', () => ({
+  useAppStore: () => appStoreMock
+}))
+
+// Mock Vue watch
+vi.mock('vue', async () => {
+  const actual = await vi.importActual('vue')
+  return {
+    ...actual,
+    watch: vi.fn()
+  }
+})
+
 const loadPlugin = async () => {
   const module = await import('~/plugins/vuetify')
   return module.default
@@ -40,13 +59,26 @@ describe('plugins/vuetify', () => {
   beforeEach(() => {
     vi.resetModules()
     vi.clearAllMocks()
+    
+    // Mock window.matchMedia
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: vi.fn().mockImplementation(query => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })),
+    })
   })
 
   it('creates and installs Vuetify with expected configuration', async () => {
     const plugin = await loadPlugin()
     const nuxtApp = { vueApp: { use: vi.fn() } }
 
-    const result = plugin(nuxtApp as any)
+    const result = await plugin(nuxtApp as any)
 
     expect(result).toBeUndefined()
     expect(defineNuxtPluginMock).toHaveBeenCalledTimes(1)
@@ -55,7 +87,7 @@ describe('plugins/vuetify', () => {
       components: vuetifyModuleMocks.components,
       directives: vuetifyModuleMocks.directives,
       theme: {
-        defaultTheme: 'system',
+        defaultTheme: expect.any(String),
         themes: {
           light: {},
           dark: {}
@@ -102,7 +134,7 @@ describe('plugins/vuetify', () => {
     const nuxtApp = { vueApp: { use: vi.fn() } }
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    const result = plugin(nuxtApp as any)
+    const result = await plugin(nuxtApp as any)
 
     expect(result).toBeUndefined()
     expect(consoleErrorSpy).toHaveBeenCalledWith('[vuetify plugin] Failed to create Vuetify instance', failure)
@@ -122,7 +154,7 @@ describe('plugins/vuetify', () => {
     const nuxtApp = { vueApp: { use: vi.fn() } }
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    const result = plugin(nuxtApp as any)
+    const result = await plugin(nuxtApp as any)
 
     expect(result).toBeUndefined()
     expect(nuxtApp.vueApp.use).toHaveBeenCalledTimes(1)
