@@ -26,14 +26,14 @@ const UsernameComponent = {
     <div>
       <!-- Loading State -->
       <div v-if="pending" class="loading">
-        <p>Lade Profil...</p>
+        <p>Loading profile...</p>
       </div>
 
       <!-- Error State -->
       <div v-else-if="error" class="error">
-        <h2>Profil nicht gefunden</h2>
-        <p>Der Benutzer "{{ username }}" existiert nicht.</p>
-        <button @click="goHome">Zur Startseite</button>
+        <h2>Profile not found</h2>
+        <p>The user "{{ username }}" does not exist.</p>
+        <button @click="goHome">To Homepage</button>
       </div>
 
       <!-- Profile Content -->
@@ -61,12 +61,12 @@ const UsernameComponent = {
 
         <!-- No Links -->
         <div v-else class="no-links">
-          <p>Noch keine Links vorhanden</p>
+          <p>No links yet</p>
         </div>
         
         <!-- Link zur Startseite -->
         <div class="home-link">
-          <button @click="goHome">Erstelle deine eigene Linksammlung</button>
+          <button @click="goHome">Create Link Collection</button>
         </div>
       </div>
     </div>
@@ -142,7 +142,7 @@ describe('Username Page', () => {
       }
     })
 
-    expect(wrapper.text()).toContain('Lade Profil...')
+    expect(wrapper.text()).toContain('Loading profile...')
     expect(wrapper.find('.loading').exists()).toBe(true)
   })
 
@@ -159,8 +159,8 @@ describe('Username Page', () => {
     vm.pending = false
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.text()).toContain('Profil nicht gefunden')
-    expect(wrapper.text()).toContain('Der Benutzer "testuser" existiert nicht.')
+    expect(wrapper.text()).toContain('Profile not found')
+    expect(wrapper.text()).toContain('The user "testuser" does not exist.')
     expect(wrapper.find('.error').exists()).toBe(true)
   })
 
@@ -271,7 +271,7 @@ describe('Username Page', () => {
     vm.pending = false
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.text()).toContain('Noch keine Links vorhanden')
+    expect(wrapper.text()).toContain('No links yet')
     expect(wrapper.find('.no-links').exists()).toBe(true)
   })
 
@@ -296,7 +296,7 @@ describe('Username Page', () => {
     vm.pending = false
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.text()).toContain('Noch keine Links vorhanden')
+    expect(wrapper.text()).toContain('No links yet')
     expect(wrapper.find('.no-links').exists()).toBe(true)
   })
 
@@ -478,7 +478,7 @@ describe('Username Page', () => {
     vm.pending = false
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.text()).toContain('Der Benutzer "differentuser" existiert nicht.')
+    expect(wrapper.text()).toContain('The user "differentuser" does not exist.')
   })
 
   it('should handle empty username', async () => {
@@ -495,6 +495,6 @@ describe('Username Page', () => {
     vm.pending = false
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.text()).toContain('Der Benutzer "" existiert nicht.')
+    expect(wrapper.text()).toContain('The user "" does not exist.')
   })
 })

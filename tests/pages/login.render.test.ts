@@ -183,7 +183,7 @@ describe('pages/login.vue (render + interactions)', () => {
     expect(signup.getAttribute('href')).toBe('/signup')
 
     // Back home button (v-btn with to="/")
-    const homeBtn = await screen.findByRole('button', { name: /zur startseite/i })
+    const homeBtn = await screen.findByRole('button', { name: /to homepage/i })
     expect(homeBtn.getAttribute('data-to')).toBe('/')
   })
 

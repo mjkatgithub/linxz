@@ -112,10 +112,10 @@ describe('pages/[username].vue (render + interactions)', () => {
     const { push } = await renderPage()
 
     // After render resolves (async setup finished), the error UI should be present
-    expect(await screen.findByText('Profil nicht gefunden')).toBeTruthy()
-    expect(screen.getByText('Der Benutzer "alice" existiert nicht.')).toBeTruthy()
+    expect(await screen.findByText('Profile not found')).toBeTruthy()
+    expect(screen.getByText('The user "alice" does not exist.')).toBeTruthy()
 
-    const button = screen.getByRole('button', { name: /zur startseite/i })
+    const button = screen.getByRole('button', { name: /to homepage/i })
     await user.click(button)
     expect(push).toHaveBeenCalledWith('/')
   })
@@ -161,7 +161,7 @@ describe('pages/[username].vue (render + interactions)', () => {
     expect(openSpy).toHaveBeenNthCalledWith(2, 'https://github.com/alice', '_blank', 'noopener,noreferrer')
 
     // CTA button navigates home
-    const cta = screen.getByRole('button', { name: /erstelle deine eigene linksammlung/i })
+    const cta = screen.getByRole('button', { name: /create link collection/i })
     await user.click(cta)
     // Assert navigation is wired (handled in our stub via router.push)
     const { useRouter } = await import('#app')
@@ -190,7 +190,7 @@ describe('pages/[username].vue (render + interactions)', () => {
     const iconTexts = screen.getAllByTestId('v-icon').map((el) => el.textContent || '')
     expect(iconTexts.some((t) => t.includes('mdi-account'))).toBe(true)
     // No links message
-    expect(screen.getByText('Noch keine Links vorhanden')).toBeTruthy()
+    expect(screen.getByText('No links yet')).toBeTruthy()
   })
 
   it('shows loading UI during fetch (best-effort note: async setup resolves before first paint)', async () => {

@@ -186,9 +186,9 @@ describe('pages/dashboard.vue (render + interactions)', () => {
 
     // heading should appear
     expect(screen.getByRole('heading', { name: /dashboard/i })).toBeTruthy()
-    expect(screen.getByText(/willkommen,\s*testuser/i)).toBeTruthy()
+    expect(screen.getByText(/welcome,\s*testuser/i)).toBeTruthy()
     expect(screen.getByText('Test User')).toBeTruthy()
-    expect(screen.getByText(/deine links \(2\)/i)).toBeTruthy()
+    expect(screen.getByText(/your links \(2\)/i)).toBeTruthy()
     const img = screen.getByTestId('v-img') as HTMLImageElement
     expect(img.getAttribute('alt')).toBe('testuser')
   })
@@ -207,7 +207,7 @@ describe('pages/dashboard.vue (render + interactions)', () => {
 
   it('shows loading state', async () => {
     await renderDashboard({ isLoading: true, activeLinks: [] })
-    expect(screen.getByText('Lade Links...')).toBeTruthy()
+    expect(screen.getByText('Loading links...')).toBeTruthy()
   })
 
   it.skip('shows empty state and opens/closes add-link dialog', async () => {

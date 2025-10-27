@@ -5,9 +5,10 @@
       <v-app-bar-title>
         <NuxtLink 
           to="/" 
-          class="text-decoration-none text-primary"
+          class="text-decoration-none text-primary d-flex align-center"
         >
-          linxz
+          <v-icon class="mr-1" size="24">mdi-link</v-icon>
+          <span class="d-none d-sm-inline">linxz</span>
         </NuxtLink>
       </v-app-bar-title>
 
@@ -42,25 +43,47 @@
 
       <!-- User Menu (eingeloggt) -->
       <template v-else>
-        <v-btn 
-          variant="text" 
-          to="/dashboard"
-          class="ml-2"
-        >
-          Dashboard
-        </v-btn>
-        <v-avatar 
-          size="32" 
-          class="ml-2"
-          style="cursor: pointer;"
-          @click="navigateTo(`/${userStore.username}`)"
-        >
-          <v-img 
-            v-if="userStore.currentUser?.avatar" 
-            :src="userStore.currentUser.avatar" 
-          />
-          <v-icon v-else size="20">mdi-account</v-icon>
-        </v-avatar>
+        <v-menu offset-y>
+          <template #activator="{ props }">
+            <v-avatar 
+              size="32" 
+              class="ml-2"
+              style="cursor: pointer;"
+              v-bind="props"
+            >
+              <v-img 
+                v-if="userStore.currentUser?.avatar" 
+                :src="userStore.currentUser.avatar" 
+              />
+              <v-icon v-else size="20">mdi-account</v-icon>
+            </v-avatar>
+          </template>
+          
+          <v-list>
+            <v-list-item 
+              :title="userStore.currentUser?.name || userStore.username"
+              :subtitle="userStore.currentUser?.email"
+              disabled
+            />
+            <v-divider />
+            <v-list-item
+              prepend-icon="mdi-view-dashboard"
+              title="Dashboard"
+              :to="'/dashboard'"
+            />
+            <v-list-item
+              prepend-icon="mdi-account"
+              title="Profile"
+              :to="`/${userStore.username}`"
+            />
+            <v-divider />
+            <v-list-item
+              prepend-icon="mdi-logout"
+              title="Sign Out"
+              @click="handleLogout"
+            />
+          </v-list>
+        </v-menu>
       </template>
     </v-container>
   </v-app-bar>
@@ -94,6 +117,12 @@ function cycleTheme() {
     current === 'light' ? 'dark' :
     current === 'dark' ? 'auto' : 'light'
   appStore.setTheme(next)
+}
+
+async function handleLogout() {
+  userStore.logout()
+  appStore.addNotification('Signed out successfully', 'success')
+  await navigateTo('/')
 }
 </script>
 

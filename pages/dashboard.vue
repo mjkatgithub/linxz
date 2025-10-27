@@ -14,7 +14,7 @@
             <v-icon v-else size="40">mdi-account</v-icon>
           </v-avatar>
           <h1>Dashboard</h1>
-          <p class="text-h6">Willkommen, {{ userStore.username }}!</p>
+          <p class="text-h6">Welcome, {{ userStore.username }}!</p>
           <p v-if="userStore.currentUser?.name" class="text-body-1">{{ userStore.currentUser.name }}</p>
           
           <div class="mt-4">
@@ -24,7 +24,7 @@
               to="/"
               prepend-icon="mdi-home"
             >
-              Zur Startseite
+              To Homepage
             </v-btn>
           </div>
         </div>
@@ -33,19 +33,19 @@
         <v-card class="mb-6">
           <v-card-title>
             <v-icon class="mr-2">mdi-link</v-icon>
-            Deine Links ({{ userStore.linkCount }})
+            Your Links ({{ userStore.linkCount }})
           </v-card-title>
           <v-card-text>
             <div v-if="userStore.isLoading" class="text-center py-4">
               <v-progress-circular indeterminate />
-              <p class="mt-2">Lade Links...</p>
+              <p class="mt-2">Loading links...</p>
             </div>
             
             <div v-else-if="userStore.activeLinks.length === 0" class="text-center py-4">
               <v-icon size="48" class="mb-2">mdi-link-off</v-icon>
-              <p>Noch keine Links vorhanden</p>
+              <p>No links yet</p>
               <v-btn color="primary" @click="showAddLinkDialog = true">
-                Ersten Link hinzufügen
+                Add First Link
               </v-btn>
             </div>
             
@@ -84,7 +84,7 @@
         <v-card>
           <v-card-title>
             <v-icon class="mr-2">mdi-cog</v-icon>
-            Aktionen
+            Actions
           </v-card-title>
           <v-card-text>
             <v-btn
@@ -93,17 +93,16 @@
               @click="showAddLinkDialog = true"
             >
               <v-icon class="mr-2">mdi-plus</v-icon>
-              Link hinzufügen
+              Add Link
             </v-btn>
             
             <v-btn
               color="secondary"
               class="mr-4 mb-2"
-              :href="`/${userStore.username}`"
-              target="_blank"
+              :to="`/${userStore.username}`"
             >
               <v-icon class="mr-2">mdi-eye</v-icon>
-              Profil ansehen
+              View Profile
             </v-btn>
             
             <v-btn
@@ -113,16 +112,17 @@
               @click="showProfileDialog = true"
             >
               <v-icon class="mr-2">mdi-account-edit</v-icon>
-              Profil bearbeiten
+              Edit Profile
             </v-btn>
             
             <v-btn
               color="error"
               variant="outlined"
+              class="mr-4 mb-2"
               @click="handleLogout"
             >
               <v-icon class="mr-2">mdi-logout</v-icon>
-              Abmelden
+              Sign Out
             </v-btn>
           </v-card-text>
         </v-card>
@@ -132,12 +132,12 @@
     <!-- Add Link Dialog -->
     <v-dialog v-model="showAddLinkDialog" max-width="500">
       <v-card>
-        <v-card-title>Link hinzufügen</v-card-title>
+        <v-card-title>Add Link</v-card-title>
         <v-card-text>
           <v-form @submit.prevent="addNewLink">
             <v-text-field
               v-model="newLink.title"
-              label="Titel"
+              label="Title"
               required
               class="mb-4"
             />
@@ -150,15 +150,15 @@
             />
             <v-textarea
               v-model="newLink.description"
-              label="Beschreibung (optional)"
+              label="Description (optional)"
               rows="3"
             />
           </v-form>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn @click="showAddLinkDialog = false">Abbrechen</v-btn>
-          <v-btn color="primary" @click="addNewLink">Hinzufügen</v-btn>
+          <v-btn @click="showAddLinkDialog = false">Cancel</v-btn>
+          <v-btn color="primary" @click="addNewLink">Add</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -166,12 +166,12 @@
     <!-- Edit Link Dialog -->
     <v-dialog v-model="showEditDialog" max-width="500">
       <v-card>
-        <v-card-title>Link bearbeiten</v-card-title>
+        <v-card-title>Edit Link</v-card-title>
         <v-card-text>
           <v-form @submit.prevent="updateLink">
             <v-text-field
               v-model="editForm.title"
-              label="Titel"
+              label="Title"
               required
               class="mb-4"
             />
@@ -184,15 +184,15 @@
             />
             <v-textarea
               v-model="editForm.description"
-              label="Beschreibung (optional)"
+              label="Description (optional)"
               rows="3"
             />
           </v-form>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn @click="showEditDialog = false">Abbrechen</v-btn>
-          <v-btn color="primary" @click="updateLink">Speichern</v-btn>
+          <v-btn @click="showEditDialog = false">Cancel</v-btn>
+          <v-btn color="primary" @click="updateLink">Save</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -200,7 +200,7 @@
     <!-- Profile Edit Dialog -->
     <v-dialog v-model="showProfileDialog" max-width="600">
       <v-card>
-        <v-card-title>Profil bearbeiten</v-card-title>
+        <v-card-title>Edit Profile</v-card-title>
         <v-card-text>
           <v-form @submit.prevent="updateProfile">
             <v-text-field
@@ -228,16 +228,16 @@
             
             <v-divider class="my-4" />
             
-            <h3 class="mb-4">Passwort ändern</h3>
+            <h3 class="mb-4">Change Password</h3>
             <v-text-field
               v-model="profileForm.currentPassword"
-              label="Aktuelles Passwort"
+              label="Current Password"
               type="password"
               class="mb-4"
             />
             <v-text-field
               v-model="profileForm.newPassword"
-              label="Neues Passwort"
+              label="New Password"
               type="password"
               class="mb-4"
             />
@@ -245,8 +245,8 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn @click="showProfileDialog = false">Abbrechen</v-btn>
-          <v-btn color="primary" @click="updateProfile">Speichern</v-btn>
+          <v-btn @click="showProfileDialog = false">Cancel</v-btn>
+          <v-btn color="primary" @click="updateProfile">Save</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -307,22 +307,22 @@ async function addNewLink() {
       order: userStore.userLinks.length + 1
     })
     
-    appStore.addNotification('Link erfolgreich hinzugefügt!', 'success')
+    appStore.addNotification('Link added successfully!', 'success')
     showAddLinkDialog.value = false
     newLink.value = { title: '', url: '', description: '' }
     
   } catch {
-    appStore.addNotification('Fehler beim Hinzufügen des Links', 'error')
+    appStore.addNotification('Error adding link', 'error')
   }
 }
 
 async function deleteLink(linkId) {
-  if (confirm('Link wirklich löschen?')) {
+  if (confirm('Really delete link?')) {
     try {
       await userStore.deleteLink(linkId)
-      appStore.addNotification('Link gelöscht!', 'success')
+      appStore.addNotification('Link deleted!', 'success')
     } catch {
-      appStore.addNotification('Fehler beim Löschen des Links', 'error')
+      appStore.addNotification('Error deleting link', 'error')
     }
   }
 }
@@ -346,11 +346,11 @@ async function updateLink() {
       description: editForm.value.description
     })
     
-    appStore.addNotification('Link erfolgreich aktualisiert!', 'success')
+    appStore.addNotification('Link updated successfully!', 'success')
     showEditDialog.value = false
     
   } catch {
-    appStore.addNotification('Fehler beim Aktualisieren des Links', 'error')
+    appStore.addNotification('Error updating link', 'error')
   }
 }
 
@@ -369,7 +369,7 @@ async function updateProfile() {
     
     await userStore.updateProfile(updateData)
     
-    appStore.addNotification('Profil erfolgreich aktualisiert!', 'success')
+    appStore.addNotification('Profile updated successfully!', 'success')
     showProfileDialog.value = false
     
     // Form zurücksetzen
@@ -377,7 +377,7 @@ async function updateProfile() {
     profileForm.value.newPassword = ''
     
   } catch {
-    appStore.addNotification('Fehler beim Aktualisieren des Profils', 'error')
+    appStore.addNotification('Error updating profile', 'error')
   }
 }
 
@@ -388,7 +388,7 @@ function openLink(url) {
 
 async function handleLogout() {
   userStore.logout()
-  appStore.addNotification('Erfolgreich abgemeldet', 'success')
+  appStore.addNotification('Signed out successfully', 'success')
   await navigateTo('/')
 }
 </script> 

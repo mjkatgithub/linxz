@@ -69,6 +69,29 @@ const mockVSpacer = {
   template: '<div class="v-spacer"></div>'
 }
 
+const mockVMenu = {
+  name: 'VMenu',
+  props: ['offsetY'],
+  template: '<div><slot name="activator" v-bind="{}" /><slot /></div>'
+}
+
+const mockVList = {
+  name: 'VList',
+  template: '<div><slot /></div>'
+}
+
+const mockVListItem = {
+  name: 'VListItem',
+  props: ['prependIcon', 'title', 'subtitle', 'to', 'disabled'],
+  emits: ['click'],
+  template: '<div @click="$emit(\'click\')"><slot /></div>'
+}
+
+const mockVDivider = {
+  name: 'VDivider',
+  template: '<hr />'
+}
+
 describe('AppHeader', () => {
   let pinia: ReturnType<typeof createPinia>
   let wrapper: VueWrapper<InstanceType<typeof AppHeader>>
@@ -95,7 +118,15 @@ describe('AppHeader', () => {
           'v-app-bar-title': mockVAppBarTitle,
           'VAppBarTitle': mockVAppBarTitle,
           'v-spacer': mockVSpacer,
-          'VSpacer': mockVSpacer
+          'VSpacer': mockVSpacer,
+          'v-menu': mockVMenu,
+          'VMenu': mockVMenu,
+          'v-list': mockVList,
+          'VList': mockVList,
+          'v-list-item': mockVListItem,
+          'VListItem': mockVListItem,
+          'v-divider': mockVDivider,
+          'VDivider': mockVDivider
         }
       }
     })
@@ -207,24 +238,24 @@ describe('AppHeader', () => {
       appStore.setTheme('light')
       await nextTick()
       
-      const icon = wrapper.findComponent({ name: 'VIcon' })
-      expect(icon.text()).toContain('mdi-white-balance-sunny')
+      const icons = wrapper.findAllComponents({ name: 'VIcon' })
+      expect(icons.some(icon => icon.text().includes('mdi-white-balance-sunny'))).toBe(true)
     })
 
     it('shows moon icon for dark theme', async () => {
       appStore.setTheme('dark')
       await nextTick()
       
-      const icon = wrapper.findComponent({ name: 'VIcon' })
-      expect(icon.text()).toContain('mdi-moon-waning-crescent')
+      const icons = wrapper.findAllComponents({ name: 'VIcon' })
+      expect(icons.some(icon => icon.text().includes('mdi-moon-waning-crescent'))).toBe(true)
     })
 
     it('shows auto icon for auto theme', async () => {
       appStore.setTheme('auto')
       await nextTick()
       
-      const icon = wrapper.findComponent({ name: 'VIcon' })
-      expect(icon.text()).toContain('mdi-theme-light-dark')
+      const icons = wrapper.findAllComponents({ name: 'VIcon' })
+      expect(icons.some(icon => icon.text().includes('mdi-theme-light-dark'))).toBe(true)
     })
 
     it('cycles theme on button click', async () => {

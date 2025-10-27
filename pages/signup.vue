@@ -50,7 +50,7 @@
           to="/"
           prepend-icon="mdi-home"
         >
-          Zur Startseite
+          To Homepage
         </v-btn>
       </div>
     </v-card>

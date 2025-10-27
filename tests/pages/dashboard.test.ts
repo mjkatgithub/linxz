@@ -62,16 +62,16 @@ const DashboardComponent = {
   template: `
     <div>
       <h1>Dashboard</h1>
-      <p>Willkommen, {{ userStore.username }}!</p>
+      <p>Welcome, {{ userStore.username }}!</p>
       <p v-if="userStore.currentUser?.name">{{ userStore.currentUser.name }}</p>
       
       <div v-if="userStore.isLoading" class="loading">
-        <p>Lade Links...</p>
+        <p>Loading links...</p>
       </div>
       
       <div v-else-if="userStore.activeLinks.length === 0" class="no-links">
-        <p>Noch keine Links vorhanden</p>
-        <button @click="showAddLinkDialog = true">Ersten Link hinzufügen</button>
+        <p>No links yet</p>
+        <button @click="showAddLinkDialog = true">Add First Link</button>
       </div>
       
       <div v-else class="links-list">
@@ -275,7 +275,7 @@ describe('Dashboard Page', () => {
     })
 
     expect(wrapper.find('h1').text()).toBe('Dashboard')
-    expect(wrapper.text()).toContain('Willkommen, testuser!')
+    expect(wrapper.text()).toContain('Welcome, testuser!')
     expect(wrapper.text()).toContain('Test User')
   })
 
@@ -289,7 +289,7 @@ describe('Dashboard Page', () => {
       }
     })
 
-    expect(wrapper.text()).toContain('Lade Links...')
+    expect(wrapper.text()).toContain('Loading links...')
   })
 
   it('should display no links message when empty', () => {
@@ -302,8 +302,8 @@ describe('Dashboard Page', () => {
       }
     })
 
-    expect(wrapper.text()).toContain('Noch keine Links vorhanden')
-    expect(wrapper.find('button').text()).toContain('Ersten Link hinzufügen')
+    expect(wrapper.text()).toContain('No links yet')
+    expect(wrapper.find('button').text()).toContain('Add First Link')
   })
 
   it('should display links list', () => {
@@ -561,7 +561,7 @@ describe('Dashboard Page', () => {
       }
     })
 
-    expect(wrapper.text()).toContain('Willkommen, testuser!')
+    expect(wrapper.text()).toContain('Welcome, testuser!')
     expect(wrapper.text()).not.toContain('Test User')
   })
 })

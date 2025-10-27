@@ -59,8 +59,8 @@ describe('Index Page', () => {
       }
     })
 
-    expect(wrapper.text()).toContain('Willkommen bei linxz')
-    expect(wrapper.text()).toContain('Deine persönliche Link-Sammlung – einfach, modern, flexibel.')
+    expect(wrapper.text()).toContain('Welcome to linxz')
+    expect(wrapper.text()).toContain('Your personal link collection for your bio')
   })
 
   it('should have login button', () => {
@@ -152,11 +152,11 @@ describe('Index Page', () => {
 
     // Check for main heading
     expect(wrapper.find('h1').exists()).toBe(true)
-    expect(wrapper.find('h1').text()).toBe('Willkommen bei linxz')
+    expect(wrapper.find('h1').text()).toBe('Welcome to linxz')
     
     // Check for description paragraph
     expect(wrapper.find('p').exists()).toBe(true)
-    expect(wrapper.find('p').text()).toContain('Deine persönliche Link-Sammlung')
+    expect(wrapper.find('p').text()).toContain('Your personal link collection for your bio')
     
     // Check for buttons
     expect(wrapper.findAll('button').length).toBe(3)

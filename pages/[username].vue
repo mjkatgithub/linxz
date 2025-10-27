@@ -4,21 +4,21 @@
       <!-- Loading State -->
       <div v-if="pending" class="text-center py-8">
         <v-progress-circular indeterminate size="64" />
-        <p class="mt-4">Lade Profil...</p>
+        <p class="mt-4">Loading profile...</p>
       </div>
 
       <!-- Error State -->
       <div v-else-if="error" class="text-center py-8">
         <v-icon size="64" color="error" class="mb-4">mdi-alert-circle</v-icon>
-        <h2>Profil nicht gefunden</h2>
-        <p class="text-body-1 mb-4">Der Benutzer "{{ username }}" existiert nicht.</p>
+        <h2>Profile not found</h2>
+        <p class="text-body-1 mb-4">The user "{{ username }}" does not exist.</p>
         <v-btn color="primary" to="/">
-          Zur Startseite
+          To Homepage
         </v-btn>
       </div>
 
       <!-- Profile Content -->
-      <div v-else-if="hasUser" class="w-100" style="max-width: 400px;">
+      <div v-else-if="hasUser" class="w-100 px-4" style="max-width: 500px;">
         <!-- Avatar -->
         <div class="text-center mb-6">
           <v-avatar size="96" class="mb-4">
@@ -55,7 +55,7 @@
         <!-- No Links -->
         <div v-else class="text-center py-8">
           <v-icon size="48" class="mb-4">mdi-link-off</v-icon>
-          <p>Noch keine Links vorhanden</p>
+          <p>No links yet</p>
         </div>
 
         <!-- Link zur Startseite -->
@@ -67,7 +67,7 @@
             prepend-icon="mdi-home"
             type="button"
           >
-            Erstelle deine eigene Linksammlung
+            Create Link Collection
           </v-btn>
         </div>
       </div>
