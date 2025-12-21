@@ -85,6 +85,7 @@ export const useUserStore = defineStore('user', {
           this.currentUser.name = profileData.name || undefined
           this.currentUser.bio = profileData.bio || undefined
           this.currentUser.avatar = profileData.avatar || undefined
+          this.currentUser.useGravatar = profileData.useGravatar || false
         }
         
         // Toastr Success
@@ -390,6 +391,10 @@ export const useUserStore = defineStore('user', {
 
         if (this.currentUser) {
           this.currentUser.username = response.username
+          this.currentUser.name = response.name || undefined
+          this.currentUser.bio = response.bio || undefined
+          this.currentUser.avatar = response.avatar || undefined
+          this.currentUser.useGravatar = response.useGravatar || false
         }
 
         const toast = useToast()

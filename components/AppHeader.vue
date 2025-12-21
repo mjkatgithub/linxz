@@ -52,8 +52,8 @@
               v-bind="props"
             >
               <v-img 
-                v-if="userStore.currentUser?.avatar" 
-                :src="userStore.currentUser.avatar" 
+                v-if="avatarUrl" 
+                :src="avatarUrl" 
               />
               <v-icon v-else size="20">mdi-account</v-icon>
             </v-avatar>
@@ -93,9 +93,21 @@
 import { computed } from 'vue'
 import { useUserStore } from '~/stores/user'
 import { useAppStore } from '~/stores/app'
+import { getGravatarUrl } from '~/lib/gravatar'
 
 const userStore = useUserStore()
 const appStore = useAppStore()
+
+const avatarUrl = computed(() => {
+  const user = userStore.currentUser
+  if (!user) return null
+  
+  if (user.useGravatar && user.email) {
+    return getGravatarUrl(user.email, 32)
+  }
+  
+  return null
+})
 
 const themeIcon = computed(() => {
   const theme = appStore.settings.theme

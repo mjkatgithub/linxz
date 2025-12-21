@@ -12,7 +12,8 @@ export default defineEventHandler(async (event) => {
     const user = requireAuth(event)
     
     const body = await readBody(event)
-    const { username, name, bio, avatar, currentPassword, newPassword } = body
+    const { username, name, bio, avatar, useGravatar, 
+            currentPassword, newPassword } = body
 
     // Prüfe ob Username bereits existiert (falls geändert)
     if (username && username !== user.username) {
@@ -73,6 +74,7 @@ export default defineEventHandler(async (event) => {
         ...(name !== undefined && { name }),
         ...(bio !== undefined && { bio }),
         ...(avatar && { avatar }),
+        ...(useGravatar !== undefined && { useGravatar }),
         ...(hashedNewPassword && { password: hashedNewPassword })
       },
       select: {
@@ -82,6 +84,7 @@ export default defineEventHandler(async (event) => {
         name: true,
         bio: true,
         avatar: true,
+        useGravatar: true,
         createdAt: true
       }
     })

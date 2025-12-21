@@ -19,6 +19,7 @@ export default defineEventHandler(async (event) => {
         name: true,
         bio: true,
         avatar: true,
+        useGravatar: true,
         createdAt: true,
         updatedAt: true
       }

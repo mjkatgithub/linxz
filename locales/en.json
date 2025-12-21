@@ -1,0 +1,85 @@
+{
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated",
+    "sections": {
+      "responsible": {
+        "title": "1. Data Controller",
+        "text": "The data controller responsible for data processing on this website is:"
+      },
+      "dataCollection": {
+        "title": "2. Data Collection and Usage",
+        "registration": {
+          "title": "2.1 Registration and User Account",
+          "text": "During registration, we collect the following personal data:",
+          "items": [
+            "Email address",
+            "Username",
+            "Password (stored encrypted)",
+            "Optional: Name and Bio"
+          ],
+          "legalBasis": "This data is used to provide and manage your user account. The legal basis for this is Art. 6 para. 1 lit. b GDPR (contract fulfillment)."
+        },
+        "gravatar": {
+          "title": "2.2 Gravatar Integration",
+          "description": "This application offers the option to use Gravatar for displaying profile pictures. Gravatar is a service provided by Automattic Inc., USA.",
+          "dataProcessed": {
+            "title": "What data is processed?",
+            "text": "If you enable the Gravatar function, your email address is transmitted as an MD5 hash (encrypted) to the servers of Automattic Inc. to retrieve your profile picture. The email address is not transmitted as plain text, but only as a hash value."
+          },
+          "purpose": {
+            "title": "Purpose of processing:",
+            "text": "The processing serves to display your profile picture on this website."
+          },
+          "legalBasis": {
+            "title": "Legal basis:",
+            "text": "The legal basis for the processing is Art. 6 para. 1 lit. f GDPR (legitimate interest). Our legitimate interest lies in improving user-friendliness and providing centralized profile picture management."
+          },
+          "thirdParty": {
+            "title": "Third party:",
+            "company": "Automattic Inc.",
+            "address": "60 29th Street #343",
+            "city": "San Francisco, CA 94110",
+            "country": "USA"
+          },
+          "dataTransfer": {
+            "title": "Data transfer to third countries:",
+            "text": "By using Gravatar, data is transferred to the USA. Automattic Inc. uses standard contractual clauses in accordance with Art. 46 GDPR to ensure an adequate level of data protection."
+          },
+          "optOut": {
+            "title": "Opt-Out:",
+            "text": "You can deactivate the use of Gravatar at any time in your profile settings. In this case, no hash of your email address will be transmitted to Automattic Inc."
+          },
+          "moreInfo": "For more information about privacy at Gravatar, please visit:"
+        }
+      },
+      "storageDuration": {
+        "title": "3. Storage Duration",
+        "text": "Your personal data will only be stored for as long as is necessary for the fulfillment of the purposes for which it was collected, or as long as legal retention obligations exist."
+      },
+      "rights": {
+        "title": "4. Your Rights",
+        "intro": "You have the following rights:",
+        "items": {
+          "access": "Right of access (Art. 15 GDPR): You can request information about your stored personal data.",
+          "rectification": "Right to rectification (Art. 16 GDPR): You can request the correction of incorrect data.",
+          "erasure": "Right to erasure (Art. 17 GDPR): You can request the deletion of your data.",
+          "restriction": "Right to restriction of processing (Art. 18 GDPR): You can request the restriction of processing.",
+          "objection": "Right to object (Art. 21 GDPR): You can object to the processing of your data.",
+          "portability": "Right to data portability (Art. 20 GDPR): You can request that your data be transmitted in a structured, common and machine-readable format.",
+          "complaint": "Right to lodge a complaint: You have the right to lodge a complaint with a supervisory authority."
+        }
+      },
+      "contact": {
+        "title": "5. Contact",
+        "text": "If you have any questions about data protection, you can contact us at the following email address:"
+      },
+      "changes": {
+        "title": "6. Changes to this Privacy Policy",
+        "text": "We reserve the right to adapt this privacy policy so that it always meets current legal requirements or to implement changes to our services in the privacy policy. The new privacy policy will then apply to your next visit."
+      }
+    },
+    "backToHome": "Back to Homepage"
+  }
+}
+

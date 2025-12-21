@@ -23,8 +23,8 @@
         <div class="text-center mb-6">
           <v-avatar size="96" class="mb-4">
             <v-img
-              v-if="user?.avatar"
-              :src="user.avatar"
+              v-if="avatarUrl"
+              :src="avatarUrl"
               :alt="user.username"
             />
             <v-icon v-else size="48">mdi-account</v-icon>
@@ -77,6 +77,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { getGravatarUrl } from '~/lib/gravatar'
 
 const route = useRoute()
 const username = computed(() => String(route.params.username ?? ''))
@@ -87,6 +88,16 @@ const error = ref(null)
 
 const hasUser = computed(() => !!userData.value)
 const user = computed(() => userData.value)
+
+const avatarUrl = computed(() => {
+  if (!user.value) return null
+  
+  if (user.value.useGravatar && user.value.email) {
+    return getGravatarUrl(user.value.email, 96)
+  }
+  
+  return null
+})
 
 onMounted(async () => {
   try {

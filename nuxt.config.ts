@@ -29,4 +29,19 @@ export default defineNuxtConfig({
   build: {
     transpile: ['vuetify'],
   },
+  runtimeConfig: {
+    // Private keys (nur serverseitig verfügbar)
+    // Diese Werte werden aus .env gelesen
+    // WICHTIG: Nach Änderungen in .env muss der Server neu gestartet werden!
+    privacyContactName: process.env.PRIVACY_CONTACT_NAME || 
+      '[Ihr Name]',
+    privacyContactAddress: process.env.PRIVACY_CONTACT_ADDRESS || 
+      '[Ihre Adresse]',
+    privacyContactEmail: process.env.PRIVACY_CONTACT_EMAIL || 
+      '[Ihre E-Mail-Adresse]',
+    // Public keys (auch im Client verfügbar, falls nötig)
+    public: {
+      // Hier können öffentliche Config-Werte hinzugefügt werden
+    }
+  }
 })

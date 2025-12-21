@@ -24,6 +24,8 @@ export default defineEventHandler(async (event) => {
         name: true,
         avatar: true,
         bio: true,
+        email: true,
+        useGravatar: true,
         links: {
           where: { isActive: true },
           orderBy: { order: 'asc' },

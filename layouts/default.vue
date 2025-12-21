@@ -7,6 +7,13 @@
       <slot />
     </v-main>
     
+    <!-- Footer -->
+    <v-footer app class="justify-center">
+      <NuxtLink to="/privacy?lang=en" class="text-decoration-none">
+        Privacy Policy
+      </NuxtLink>
+    </v-footer>
+    
     <!-- Globale Benachrichtigungen -->
     <NotificationSystem />
   </v-app>

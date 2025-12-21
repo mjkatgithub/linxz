@@ -7,8 +7,8 @@
         <div class="text-center mb-8">
           <v-avatar size="80" class="mb-4">
             <v-img 
-              v-if="userStore.currentUser?.avatar" 
-              :src="userStore.currentUser.avatar" 
+              v-if="avatarUrl" 
+              :src="avatarUrl" 
               :alt="userStore.username" 
             />
             <v-icon v-else size="40">mdi-account</v-icon>
@@ -109,7 +109,7 @@
               color="info"
               variant="outlined"
               class="mr-4 mb-2"
-              @click="showProfileDialog = true"
+              @click="openProfileDialog"
             >
               <v-icon class="mr-2">mdi-account-edit</v-icon>
               Edit Profile
@@ -220,11 +220,24 @@
               rows="3"
               class="mb-4"
             />
-            <v-text-field
-              v-model="profileForm.avatar"
-              label="Avatar URL (optional)"
-              class="mb-4"
-            />
+            
+            <v-divider class="my-4" />
+            
+            <div class="d-flex align-center mb-4">
+              <v-checkbox
+                v-model="profileForm.useGravatar"
+                label="Use Gravatar"
+                hide-details
+                class="mr-2"
+              />
+              <NuxtLink
+                to="/privacy?lang=en"
+                target="_blank"
+                class="text-caption text-decoration-none"
+              >
+                (Privacy Policy)
+              </NuxtLink>
+            </div>
             
             <v-divider class="my-4" />
             
@@ -255,12 +268,24 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { useUserStore } from '~/stores/user'
 import { useAppStore } from '~/stores/app'
+import { getGravatarUrl } from '~/lib/gravatar'
 
 const userStore = useUserStore()
 const appStore = useAppStore()
+
+const avatarUrl = computed(() => {
+  const user = userStore.currentUser
+  if (!user) return null
+  
+  if (user.useGravatar && user.email) {
+    return getGravatarUrl(user.email, 80)
+  }
+  
+  return null
+})
 
 // Laden der Links beim Mount
 onMounted(async () => {
@@ -294,7 +319,7 @@ const profileForm = ref({
   username: userStore.currentUser?.username || '',
   name: userStore.currentUser?.name || '',
   bio: userStore.currentUser?.bio || '',
-  avatar: userStore.currentUser?.avatar || '',
+  useGravatar: userStore.currentUser?.useGravatar || false,
   currentPassword: '',
   newPassword: ''
 })
@@ -338,6 +363,19 @@ function editLink(link) {
   showEditDialog.value = true
 }
 
+function openProfileDialog() {
+  // Aktualisiere Formular mit aktuellen User-Daten
+  profileForm.value = {
+    username: userStore.currentUser?.username || '',
+    name: userStore.currentUser?.name || '',
+    bio: userStore.currentUser?.bio || '',
+    useGravatar: userStore.currentUser?.useGravatar || false,
+    currentPassword: '',
+    newPassword: ''
+  }
+  showProfileDialog.value = true
+}
+
 async function updateLink() {
   try {
     await userStore.updateLink(editForm.value.id, {
@@ -359,9 +397,11 @@ async function updateProfile() {
     // Entferne leere Felder
     const updateData = {}
     if (profileForm.value.username) updateData.username = profileForm.value.username
-    if (profileForm.value.name) updateData.name = profileForm.value.name
-    if (profileForm.value.bio) updateData.bio = profileForm.value.bio
-    if (profileForm.value.avatar) updateData.avatar = profileForm.value.avatar
+    if (profileForm.value.name !== undefined) updateData.name = profileForm.value.name
+    if (profileForm.value.bio !== undefined) updateData.bio = profileForm.value.bio
+    if (profileForm.value.useGravatar !== undefined) {
+      updateData.useGravatar = profileForm.value.useGravatar
+    }
     if (profileForm.value.currentPassword && profileForm.value.newPassword) {
       updateData.currentPassword = profileForm.value.currentPassword
       updateData.newPassword = profileForm.value.newPassword

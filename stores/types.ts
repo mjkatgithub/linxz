@@ -9,6 +9,7 @@ export interface User {
   name?: string
   bio?: string
   avatar?: string
+  useGravatar?: boolean
   createdAt: Date
   isAuthenticated: boolean
 }
@@ -92,6 +93,7 @@ export interface UpdateProfileRequest {
   name?: string
   bio?: string
   avatar?: string
+  useGravatar?: boolean
   currentPassword?: string
   newPassword?: string
 }
@@ -122,6 +124,7 @@ export interface UserProfileResponse {
   name: string | null
   bio: string | null
   avatar: string | null
+  useGravatar: boolean
   createdAt: string
 }
 

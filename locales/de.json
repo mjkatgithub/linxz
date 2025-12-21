@@ -1,0 +1,85 @@
+{
+  "privacy": {
+    "title": "Datenschutzerklärung",
+    "lastUpdated": "Stand",
+    "sections": {
+      "responsible": {
+        "title": "1. Verantwortlicher",
+        "text": "Verantwortlich für die Datenverarbeitung auf dieser Website ist:"
+      },
+      "dataCollection": {
+        "title": "2. Datenerfassung und -verwendung",
+        "registration": {
+          "title": "2.1 Registrierung und Nutzerkonto",
+          "text": "Bei der Registrierung erheben wir folgende personenbezogene Daten:",
+          "items": [
+            "E-Mail-Adresse",
+            "Benutzername",
+            "Passwort (verschlüsselt gespeichert)",
+            "Optional: Name und Bio"
+          ],
+          "legalBasis": "Diese Daten werden zur Bereitstellung und Verwaltung Ihres Nutzerkontos verwendet. Die Rechtsgrundlage hierfür ist Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung)."
+        },
+        "gravatar": {
+          "title": "2.2 Gravatar-Integration",
+          "description": "Diese Anwendung bietet die Möglichkeit, Gravatar für die Anzeige von Profilbildern zu verwenden. Gravatar ist ein Service der Automattic Inc., USA.",
+          "dataProcessed": {
+            "title": "Welche Daten werden verarbeitet?",
+            "text": "Wenn Sie die Gravatar-Funktion aktivieren, wird Ihre E-Mail-Adresse als MD5-Hash (verschlüsselt) an die Server von Automattic Inc. übermittelt, um Ihr Profilbild abzurufen. Die E-Mail-Adresse wird dabei nicht als Klartext, sondern nur als Hash-Wert übermittelt."
+          },
+          "purpose": {
+            "title": "Zweck der Verarbeitung:",
+            "text": "Die Verarbeitung dient der Anzeige Ihres Profilbildes auf dieser Website."
+          },
+          "legalBasis": {
+            "title": "Rechtsgrundlage:",
+            "text": "Die Rechtsgrundlage für die Verarbeitung ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse). Unser berechtigtes Interesse liegt in der Verbesserung der Benutzerfreundlichkeit und der Bereitstellung einer zentralen Profilbildverwaltung."
+          },
+          "thirdParty": {
+            "title": "Drittanbieter:",
+            "company": "Automattic Inc.",
+            "address": "60 29th Street #343",
+            "city": "San Francisco, CA 94110",
+            "country": "USA"
+          },
+          "dataTransfer": {
+            "title": "Datenübertragung in Drittländer:",
+            "text": "Durch die Nutzung von Gravatar werden Daten in die USA übermittelt. Automattic Inc. verwendet Standardvertragsklauseln gemäß Art. 46 DSGVO, um ein angemessenes Datenschutzniveau sicherzustellen."
+          },
+          "optOut": {
+            "title": "Opt-Out:",
+            "text": "Sie können die Nutzung von Gravatar jederzeit in Ihren Profileinstellungen deaktivieren. In diesem Fall wird kein Hash Ihrer E-Mail-Adresse an Automattic Inc. übermittelt."
+          },
+          "moreInfo": "Weitere Informationen zum Datenschutz bei Gravatar finden Sie unter:"
+        }
+      },
+      "storageDuration": {
+        "title": "3. Speicherdauer",
+        "text": "Ihre personenbezogenen Daten werden nur so lange gespeichert, wie dies für die Erfüllung der Zwecke erforderlich ist, für die sie erhoben wurden, oder solange gesetzliche Aufbewahrungspflichten bestehen."
+      },
+      "rights": {
+        "title": "4. Ihre Rechte",
+        "intro": "Sie haben folgende Rechte:",
+        "items": {
+          "access": "Auskunftsrecht (Art. 15 DSGVO): Sie können Auskunft über Ihre gespeicherten personenbezogenen Daten verlangen.",
+          "rectification": "Berichtigungsrecht (Art. 16 DSGVO): Sie können die Berichtigung unrichtiger Daten verlangen.",
+          "erasure": "Löschungsrecht (Art. 17 DSGVO): Sie können die Löschung Ihrer Daten verlangen.",
+          "restriction": "Einschränkung der Verarbeitung (Art. 18 DSGVO): Sie können die Einschränkung der Verarbeitung verlangen.",
+          "objection": "Widerspruchsrecht (Art. 21 DSGVO): Sie können der Verarbeitung Ihrer Daten widersprechen.",
+          "portability": "Datenübertragbarkeit (Art. 20 DSGVO): Sie können verlangen, dass Ihre Daten in einem strukturierten, gängigen und maschinenlesbaren Format übermittelt werden.",
+          "complaint": "Beschwerderecht: Sie haben das Recht, sich bei einer Aufsichtsbehörde zu beschweren."
+        }
+      },
+      "contact": {
+        "title": "5. Kontakt",
+        "text": "Bei Fragen zum Datenschutz können Sie uns unter folgender E-Mail-Adresse kontaktieren:"
+      },
+      "changes": {
+        "title": "6. Änderungen dieser Datenschutzerklärung",
+        "text": "Wir behalten uns vor, diese Datenschutzerklärung anzupassen, damit sie stets den aktuellen rechtlichen Anforderungen entspricht oder um Änderungen unserer Leistungen in der Datenschutzerklärung umzusetzen. Für Ihren erneuten Besuch gilt dann die neue Datenschutzerklärung."
+      }
+    },
+    "backToHome": "Zur Startseite"
+  }
+}
+

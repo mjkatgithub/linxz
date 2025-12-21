@@ -1,4 +1,4 @@
-﻿import { createVuetify } from 'vuetify'
+import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import { defineNuxtPlugin, useHead } from '#imports'
