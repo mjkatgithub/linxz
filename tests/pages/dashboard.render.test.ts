@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, within } from '@testing-library/vue'
 import userEvent from '@testing-library/user-event'
 import { h, Suspense } from 'vue'
@@ -216,14 +216,14 @@ describe('pages/dashboard.vue (render + interactions)', () => {
 
     expect(screen.getByText(/noch keine links vorhanden/i)).toBeTruthy()
 
-    const addFirstBtn = screen.getByRole('button', { name: /ersten link hinzufügen/i })
+    const addFirstBtn = screen.getByRole('button', { name: /ersten link hinzufÃ¼gen/i })
     await user.click(addFirstBtn)
     expect(screen.getByTestId('v-dialog')).toBeTruthy()
-    expect(screen.getByText('Link hinzufügen')).toBeTruthy()
+    expect(screen.getByText('Link hinzufÃ¼gen')).toBeTruthy()
 
     const cancel = screen.getByRole('button', { name: /abbrechen/i })
     await user.click(cancel)
-    expect(screen.queryByText('Link hinzufügen')).toBeNull()
+    expect(screen.queryByText('Link hinzufÃ¼gen')).toBeNull()
   })
 
   it.skip('opens add-link dialog from actions and submits to call addLink', async () => {
@@ -231,9 +231,9 @@ describe('pages/dashboard.vue (render + interactions)', () => {
     const addLink = vi.fn().mockResolvedValue(undefined)
     await renderDashboard({ userLinks: [], addLink })
 
-    const actionsAddBtn = screen.getAllByRole('button').find((b) => /link hinzufügen/i.test(b.textContent || ''))!
+    const actionsAddBtn = screen.getAllByRole('button').find((b) => /link hinzufÃ¼gen/i.test(b.textContent || ''))!
     await user.click(actionsAddBtn)
-    expect(screen.getByText('Link hinzufügen')).toBeTruthy()
+    expect(screen.getByText('Link hinzufÃ¼gen')).toBeTruthy()
 
     const title = screen.getByRole('textbox', { name: 'Titel' }) as HTMLInputElement
     const url = screen.getByRole('textbox', { name: 'URL' }) as HTMLInputElement
@@ -242,7 +242,7 @@ describe('pages/dashboard.vue (render + interactions)', () => {
     await user.type(url, 'https://newlink.com')
     await user.type(desc, 'New description')
 
-    const submit = screen.getByRole('button', { name: /hinzufügen/i })
+    const submit = screen.getByRole('button', { name: /hinzufÃ¼gen/i })
     await user.click(submit)
 
     expect(addLink).toHaveBeenCalledWith({
@@ -252,7 +252,7 @@ describe('pages/dashboard.vue (render + interactions)', () => {
       isActive: true,
       order: 1
     })
-    expect(appStoreMock.addNotification).toHaveBeenCalledWith('Link erfolgreich hinzugefügt!', 'success')
+    expect(appStoreMock.addNotification).toHaveBeenCalledWith('Link erfolgreich hinzugefÃ¼gt!', 'success')
   })
 
   it.skip('shows error notification when addLink fails', async () => {
@@ -260,13 +260,13 @@ describe('pages/dashboard.vue (render + interactions)', () => {
     const addLink = vi.fn().mockRejectedValue(new Error('fail'))
     await renderDashboard({ userLinks: [], addLink })
 
-    const actionsAddBtn = screen.getAllByRole('button').find((b) => /link hinzufügen/i.test(b.textContent || ''))!
+    const actionsAddBtn = screen.getAllByRole('button').find((b) => /link hinzufÃ¼gen/i.test(b.textContent || ''))!
     await user.click(actionsAddBtn)
 
-    const submit = screen.getByRole('button', { name: /hinzufügen/i })
+    const submit = screen.getByRole('button', { name: /hinzufÃ¼gen/i })
     await user.click(submit)
 
-    expect(appStoreMock.addNotification).toHaveBeenCalledWith('Fehler beim Hinzufügen des Links', 'error')
+    expect(appStoreMock.addNotification).toHaveBeenCalledWith('Fehler beim HinzufÃ¼gen des Links', 'error')
   })
 
   it.skip('opens edit dialog and submits to call updateLink', async () => {
@@ -327,9 +327,9 @@ describe('pages/dashboard.vue (render + interactions)', () => {
     expect(delBtn).toBeTruthy()
     await user.click(delBtn as HTMLElement)
 
-    expect(global.confirm).toHaveBeenCalledWith('Link wirklich löschen?')
+    expect(global.confirm).toHaveBeenCalledWith('Link wirklich lÃ¶schen?')
     expect(deleteLink).toHaveBeenCalledWith('1')
-    expect(appStoreMock.addNotification).toHaveBeenCalledWith('Link gelöscht!', 'success')
+    expect(appStoreMock.addNotification).toHaveBeenCalledWith('Link gelÃ¶scht!', 'success')
   })
 
   it.skip('does not call deleteLink when confirmation is cancelled', async () => {
@@ -340,7 +340,7 @@ describe('pages/dashboard.vue (render + interactions)', () => {
 
     const delBtn = screen.getAllByRole('button').find((b) => (b.getAttribute('aria-label') || '').includes('mdi-delete'))
     await user.click(delBtn as HTMLElement)
-    expect(global.confirm).toHaveBeenCalledWith('Link wirklich löschen?')
+    expect(global.confirm).toHaveBeenCalledWith('Link wirklich lÃ¶schen?')
     expect(deleteLink).not.toHaveBeenCalled()
   })
 
@@ -353,7 +353,7 @@ describe('pages/dashboard.vue (render + interactions)', () => {
     const delBtn = screen.getAllByRole('button').find((b) => (b.getAttribute('aria-label') || '').includes('mdi-delete'))
     await user.click(delBtn as HTMLElement)
 
-    expect(appStoreMock.addNotification).toHaveBeenCalledWith('Fehler beim Löschen des Links', 'error')
+    expect(appStoreMock.addNotification).toHaveBeenCalledWith('Fehler beim LÃ¶schen des Links', 'error')
   })
 
   it.skip('list item click opens link in new tab', async () => {
@@ -439,3 +439,4 @@ describe('pages/dashboard.vue (render + interactions)', () => {
     expect(screen.queryByText('Test User')).toBeNull()
   })
 })
+

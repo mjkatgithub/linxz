@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+﻿import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { ref } from 'vue'
@@ -22,7 +22,7 @@ global.$fetch = vi.fn() as any
 const navigateToSpy = vi.fn()
 vi.stubGlobal('navigateTo', navigateToSpy)
 
-// Einfache Login-Komponente für Tests
+// Einfache Login-Komponente fÃ¼r Tests
 const LoginComponent = {
   template: `
     <div class="login-page">
@@ -30,7 +30,7 @@ const LoginComponent = {
       
       <div v-if="userStore.error" class="error-alert">
         {{ userStore.error }}
-        <button @click="userStore.error = null">×</button>
+        <button @click="userStore.error = null">Ã—</button>
       </div>
       
       <form @submit.prevent="handleLogin">
@@ -195,7 +195,7 @@ describe('Login Page', () => {
     await emailField.setValue('test@example.com')
     await passwordField.setValue('password123')
 
-    // Prüfe ob die Werte korrekt gesetzt wurden
+    // PrÃ¼fe ob die Werte korrekt gesetzt wurden
     expect((emailField.element as HTMLInputElement).value).to.equal('test@example.com')
     expect((passwordField.element as HTMLInputElement).value).to.equal('password123')
   })
@@ -209,7 +209,7 @@ describe('Login Page', () => {
       }
     })
 
-    // Setze Form-Daten über die Input-Felder
+    // Setze Form-Daten Ã¼ber die Input-Felder
     const emailField = wrapper.find('input[type="email"]')
     const passwordField = wrapper.find('input[type="password"]')
     
@@ -246,7 +246,7 @@ describe('Login Page', () => {
     // Warte auf async operation
     await wrapper.vm.$nextTick()
 
-    // Prüfe ob Navigation stattfindet
+    // PrÃ¼fe ob Navigation stattfindet
     expect(navigateToSpy).toHaveBeenCalledWith('/dashboard')
   })
 
@@ -274,7 +274,7 @@ describe('Login Page', () => {
     // Warte auf async operation
     await wrapper.vm.$nextTick()
 
-    // Prüfe ob Login-Aufruf stattgefunden hat
+    // PrÃ¼fe ob Login-Aufruf stattgefunden hat
     expect(loginSpy).toHaveBeenCalledWith('wrong@example.com', 'wrongpassword')
   })
 
@@ -311,3 +311,4 @@ describe('Login Page', () => {
     expect(submitButton.attributes('type')).to.equal('submit')
   })
 })
+

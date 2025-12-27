@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from 'vitest'
+﻿import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from 'vitest'
 
 const getQueryMock = vi.fn()
 const createErrorMock = vi.fn((params: any = {}) => {
@@ -41,7 +41,7 @@ const importLinksHandler = async () => {
   const prismaModule = await import('~/lib/prisma')
   const loggerModule: any = await import('~/lib/logger')
 
-  const module = await import('~/server/api/links.get')
+  const module = await import('~~/server/api/links.get')
   const handler = module.default as (event: any) => Promise<any>
 
   const prisma = prismaModule.default as unknown as PrismaMock
@@ -104,6 +104,8 @@ describe('GET /api/links', () => {
         name: true,
         avatar: true,
         bio: true,
+        email: true,
+        useGravatar: true,
         links: {
           where: { isActive: true },
           orderBy: { order: 'asc' },
@@ -212,3 +214,4 @@ describe('GET /api/links', () => {
     expect(createErrorMock).not.toHaveBeenCalled()
   })
 })
+

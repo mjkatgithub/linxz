@@ -11,22 +11,18 @@
       <div v-else-if="error" class="text-center py-8">
         <v-icon size="64" color="error" class="mb-4">mdi-alert-circle</v-icon>
         <h2>Profile not found</h2>
-        <p class="text-body-1 mb-4">The user "{{ username }}" does not exist.</p>
-        <v-btn color="primary" to="/">
-          To Homepage
-        </v-btn>
+        <p class="text-body-1 mb-4">
+          The user "{{ username }}" does not exist.
+        </p>
+        <v-btn color="primary" to="/"> To Homepage </v-btn>
       </div>
 
       <!-- Profile Content -->
-      <div v-else-if="hasUser" class="w-100 px-4" style="max-width: 500px;">
+      <div v-else-if="hasUser" class="w-100 px-4" style="max-width: 500px">
         <!-- Avatar -->
         <div class="text-center mb-6">
           <v-avatar size="96" class="mb-4">
-            <v-img
-              v-if="avatarUrl"
-              :src="avatarUrl"
-              :alt="user.username"
-            />
+            <v-img v-if="avatarUrl" :src="avatarUrl" :alt="user.username" />
             <v-icon v-else size="48">mdi-account</v-icon>
           </v-avatar>
           <h2 class="mb-2">@{{ user.username }}</h2>
@@ -76,53 +72,55 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { getGravatarUrl } from '~/lib/gravatar'
+import { ref, computed, onMounted } from "vue";
+import { getGravatarUrl } from "~/lib/gravatar";
 
-const route = useRoute()
-const username = computed(() => String(route.params.username ?? ''))
+const route = useRoute();
+const username = computed(() => String(route.params.username ?? ""));
 
-const userData = ref(null)
-const pending = ref(true)
-const error = ref(null)
+const userData = ref(null);
+const pending = ref(true);
+const error = ref(null);
 
-const hasUser = computed(() => !!userData.value)
-const user = computed(() => userData.value)
+const hasUser = computed(() => !!userData.value);
+const user = computed(() => userData.value);
 
 const avatarUrl = computed(() => {
-  if (!user.value) return null
-  
+  if (!user.value) return null;
+
   if (user.value.useGravatar && user.value.email) {
-    return getGravatarUrl(user.value.email, 96)
+    return getGravatarUrl(user.value.email, 96);
   }
-  
-  return null
-})
+
+  return user.value.avatar || null;
+});
 
 onMounted(async () => {
   try {
-    const response = await $fetch('/api/links', {
-      query: { username: username.value }
-    })
-    userData.value = response
+    const response = await $fetch("/api/links", {
+      query: { username: username.value },
+    });
+    userData.value = response;
   } catch (err) {
-    error.value = err
+    error.value = err;
   } finally {
-    pending.value = false
+    pending.value = false;
   }
-})
+});
 
 function openLink(url) {
-  window.open(url, '_blank', 'noopener,noreferrer')
+  window.open(url, "_blank", "noopener,noreferrer");
 }
 
 useHead({
   title: computed(() => `@${username.value} - Linxz`),
   meta: [
     {
-      name: 'description',
-      content: computed(() => `Besuche das Profil von @${username.value} auf Linxz`)
-    }
-  ]
-})
+      name: "description",
+      content: computed(
+        () => `Besuche das Profil von @${username.value} auf Linxz`
+      ),
+    },
+  ],
+});
 </script>

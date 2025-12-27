@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, vi } from 'vitest'
+﻿import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import type { Mock } from 'vitest'
 
@@ -329,3 +329,4 @@ describe('App Store', () => {
     expect(localStorageMock.removeItem).toHaveBeenCalledWith('app-notifications')
   })
 })
+

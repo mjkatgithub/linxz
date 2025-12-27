@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { ref } from 'vue'
@@ -80,24 +80,24 @@ const DashboardComponent = {
           <p>{{ link.description }}</p>
           <a :href="link.url" target="_blank">{{ link.url }}</a>
           <button @click="editLink(link)">Bearbeiten</button>
-          <button @click="deleteLink(link.id)">Löschen</button>
+          <button @click="deleteLink(link.id)">LÃ¶schen</button>
         </div>
       </div>
       
       <div class="actions">
-        <button @click="showAddLinkDialog = true">Link hinzufügen</button>
+        <button @click="showAddLinkDialog = true">Link hinzufÃ¼gen</button>
         <button @click="showProfileDialog = true">Profil bearbeiten</button>
         <button @click="handleLogout">Abmelden</button>
       </div>
       
       <!-- Add Link Dialog -->
       <div v-if="showAddLinkDialog" class="dialog">
-        <h3>Link hinzufügen</h3>
+        <h3>Link hinzufÃ¼gen</h3>
         <form @submit.prevent="addNewLink">
           <input v-model="newLink.title" placeholder="Titel" required />
           <input v-model="newLink.url" placeholder="URL" type="url" required />
           <textarea v-model="newLink.description" placeholder="Beschreibung"></textarea>
-          <button type="submit">Hinzufügen</button>
+          <button type="submit">HinzufÃ¼gen</button>
           <button type="button" @click="showAddLinkDialog = false">Abbrechen</button>
         </form>
       </div>
@@ -165,21 +165,21 @@ const DashboardComponent = {
           order: mockUserStore.userLinks.length + 1
         })
         
-        mockAppStore.addNotification('Link erfolgreich hinzugefügt!', 'success')
+        mockAppStore.addNotification('Link erfolgreich hinzugefÃ¼gt!', 'success')
         showAddLinkDialog.value = false
         newLink.value = { title: '', url: '', description: '' }
       } catch {
-        mockAppStore.addNotification('Fehler beim Hinzufügen des Links', 'error')
+        mockAppStore.addNotification('Fehler beim HinzufÃ¼gen des Links', 'error')
       }
     }
     
     async function deleteLink(linkId: string) {
-      if (confirm('Link wirklich löschen?')) {
+      if (confirm('Link wirklich lÃ¶schen?')) {
         try {
           await mockUserStore.deleteLink(linkId)
-          mockAppStore.addNotification('Link gelöscht!', 'success')
+          mockAppStore.addNotification('Link gelÃ¶scht!', 'success')
         } catch {
-          mockAppStore.addNotification('Fehler beim Löschen des Links', 'error')
+          mockAppStore.addNotification('Fehler beim LÃ¶schen des Links', 'error')
         }
       }
     }
@@ -335,12 +335,12 @@ describe('Dashboard Page', () => {
       }
     })
 
-    const addButton = wrapper.findAll('button').find(btn => btn.text().includes('Link hinzufügen'))
+    const addButton = wrapper.findAll('button').find(btn => btn.text().includes('Link hinzufÃ¼gen'))
     expect(addButton).toBeDefined()
     
     await addButton!.trigger('click')
     
-    expect(wrapper.find('.dialog').text()).toContain('Link hinzufügen')
+    expect(wrapper.find('.dialog').text()).toContain('Link hinzufÃ¼gen')
   })
 
   it('should show edit link dialog when edit button clicked', async () => {
@@ -425,7 +425,7 @@ describe('Dashboard Page', () => {
       isActive: true,
       order: 1
     })
-    expect(mockAppStore.addNotification).toHaveBeenCalledWith('Link erfolgreich hinzugefügt!', 'success')
+    expect(mockAppStore.addNotification).toHaveBeenCalledWith('Link erfolgreich hinzugefÃ¼gt!', 'success')
   })
 
   it('should handle edit link form submission', async () => {
@@ -511,14 +511,14 @@ describe('Dashboard Page', () => {
       }
     })
 
-    const deleteButton = wrapper.findAll('button').find(btn => btn.text().includes('Löschen'))
+    const deleteButton = wrapper.findAll('button').find(btn => btn.text().includes('LÃ¶schen'))
     expect(deleteButton).toBeDefined()
     
     await deleteButton!.trigger('click')
     
-    expect(global.confirm).toHaveBeenCalledWith('Link wirklich löschen?')
+    expect(global.confirm).toHaveBeenCalledWith('Link wirklich lÃ¶schen?')
     expect(mockUserStore.deleteLink).toHaveBeenCalledWith('1')
-    expect(mockAppStore.addNotification).toHaveBeenCalledWith('Link gelöscht!', 'success')
+    expect(mockAppStore.addNotification).toHaveBeenCalledWith('Link gelÃ¶scht!', 'success')
   })
 
   it('should not delete link when confirmation is cancelled', async () => {
@@ -540,10 +540,10 @@ describe('Dashboard Page', () => {
       }
     })
 
-    const deleteButton = wrapper.findAll('button').find(btn => btn.text().includes('Löschen'))
+    const deleteButton = wrapper.findAll('button').find(btn => btn.text().includes('LÃ¶schen'))
     await deleteButton!.trigger('click')
     
-    expect(global.confirm).toHaveBeenCalledWith('Link wirklich löschen?')
+    expect(global.confirm).toHaveBeenCalledWith('Link wirklich lÃ¶schen?')
     expect(mockUserStore.deleteLink).not.toHaveBeenCalled()
   })
 
@@ -565,3 +565,4 @@ describe('Dashboard Page', () => {
     expect(wrapper.text()).not.toContain('Test User')
   })
 })
+

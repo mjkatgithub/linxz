@@ -26,13 +26,13 @@ export default defineConfig({
       reporter: ['text', 'json', 'html', 'lcov'],
       reportsDirectory: './coverage',
       include: [
-        'components/**/*.{js,ts,vue}',
-        'pages/**/*.{js,ts,vue}',
-        'stores/**/*.{js,ts}',
-        'lib/**/*.{js,ts}',
+        'app/components/**/*.{js,ts,vue}',
+        'app/pages/**/*.{js,ts,vue}',
+        'app/stores/**/*.{js,ts}',
+        'app/lib/**/*.{js,ts}',
         'server/api/**/*.{js,ts}',
-        'plugins/**/*.{js,ts}',
-        'layouts/**/*.{js,ts,vue}'
+        'app/plugins/**/*.{js,ts}',
+        'app/layouts/**/*.{js,ts,vue}'
       ],
       exclude: [
         'node_modules',
@@ -60,8 +60,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '~': resolve(__dirname, '.'),
-      '@': resolve(__dirname, '.'),
+      '~': resolve(__dirname, 'app'),
+      '@': resolve(__dirname, 'app'),
       '~~': resolve(__dirname, '.'),
       '@@': resolve(__dirname, '.'),
       '#app': resolve(__dirname, 'tests/mocks/nuxt-app.ts'),

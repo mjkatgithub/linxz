@@ -70,7 +70,7 @@ let originalCreateError: any
 const importHandler = async () => {
   vi.resetModules()
 
-  const module = await import('~/server/api/users/links.get.ts')
+  const module = await import('~~/server/api/users/links.get.ts')
   const handler = module.default as (event: any) => Promise<any>
 
   return {
@@ -260,3 +260,4 @@ describe('GET /api/users/links', () => {
     expect(createErrorMock).not.toHaveBeenCalled()
   })
 })
+

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from "vitest"
+﻿import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from "vitest"
 
 const getRouterParamMock = vi.fn()
 const readBodyMock = vi.fn()
@@ -52,7 +52,7 @@ const importPutHandler = async () => {
   const prismaModule = await import('~/lib/prisma')
   const loggerModule: any = await import('~/lib/logger')
   await import('~/lib/auth')
-  const module = await import('~/server/api/links/[id].put.ts')
+  const module = await import('~~/server/api/links/[id].put.ts')
 
   const prisma = prismaModule.default as unknown as PrismaMock
   const loggerFactory = loggerModule.createLogger as unknown as { mock: { results: Array<{ value: LoggerMock }> } }

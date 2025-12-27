@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock PrismaClient
 vi.mock('@prisma/client', () => ({
@@ -95,3 +95,4 @@ describe('Prisma Client', () => {
     process.env.NODE_ENV = originalEnv
   })
 })
+

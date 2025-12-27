@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+﻿import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 // Mock $fetch für einfache Tests
 global.$fetch = vi.fn() as any

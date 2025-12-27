@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 type VitestMock = ReturnType<typeof vi.fn>
 
@@ -63,3 +63,4 @@ describe('plugins/auth.client', () => {
     expect(storeMocks.checkAuth).toHaveBeenCalledTimes(1)
   })
 })
+

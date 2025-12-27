@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+﻿import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useAppStore } from '~/stores/app'
 
@@ -167,3 +167,4 @@ describe('theme.client Plugin', () => {
     })
   })
 })
+
