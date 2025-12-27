@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from 'vitest'
+﻿import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from 'vitest'
 
 const readBodyMock = vi.fn()
 const getHeaderMock = vi.fn()
@@ -42,7 +42,7 @@ const importLoginHandler = async () => {
   const verifyPasswordMock = (passwordModule as any).verifyPassword as MockFn
   const loggerMock = loggerModule.default as Record<string, MockFn>
 
-  const module = await import('~/server/api/auth/login.post')
+  const module = await import('~~/server/api/auth/login.post')
   const handler = module.default as (event: any) => Promise<any>
 
   return { handler, prisma, generateTokenMock, verifyPasswordMock, loggerMock }
@@ -235,3 +235,4 @@ describe('POST /api/auth/login', () => {
     }))
   })
 })
+

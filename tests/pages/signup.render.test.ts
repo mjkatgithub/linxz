@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/vue'
 import userEvent from '@testing-library/user-event'
 import { defineComponent, h, Suspense, reactive } from 'vue'
@@ -251,3 +251,4 @@ describe('pages/signup.vue (render + interactions)', () => {
     expect(submit.getAttribute('aria-busy')).toBe('true')
   })
 })
+

@@ -70,7 +70,7 @@ let originalCreateError: any
 const importUsersMeHandler = async () => {
   vi.resetModules()
 
-  const module = await import('~/server/api/users/me.get.ts')
+  const module = await import('~~/server/api/users/me.get.ts')
   const handler = module.default as (event: any) => Promise<any>
 
   return {
@@ -134,6 +134,7 @@ describe('GET /api/users/me', () => {
         name: true,
         bio: true,
         avatar: true,
+        useGravatar: true,
         createdAt: true,
         updatedAt: true
       }
@@ -168,6 +169,7 @@ describe('GET /api/users/me', () => {
         name: true,
         bio: true,
         avatar: true,
+        useGravatar: true,
         createdAt: true,
         updatedAt: true
       }
@@ -232,6 +234,7 @@ describe('GET /api/users/me', () => {
         name: true,
         bio: true,
         avatar: true,
+        useGravatar: true,
         createdAt: true,
         updatedAt: true
       }
@@ -245,3 +248,4 @@ describe('GET /api/users/me', () => {
     })
   })
 })
+

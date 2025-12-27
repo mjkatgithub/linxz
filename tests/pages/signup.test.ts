@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { ref } from 'vue'
@@ -213,3 +213,4 @@ describe('Signup Page', () => {
     expect(mockAppStore.addNotification).toHaveBeenCalledWith('Registrierung fehlgeschlagen', 'error')
   })
 })
+

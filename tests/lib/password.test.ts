@@ -64,3 +64,4 @@ describe("password utilities", () => {
     await expect(verifyPassword("secret", "hash")).rejects.toThrow(compareError)
   })
 })
+

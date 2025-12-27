@@ -100,7 +100,7 @@ describe('User Store', () => {
 
     expect(userStore.isLoggedIn).toBe(true)
     expect(userStore.username).toBe('tester')
-    expect(userStore.activeLinks[0].id).toBe('1')
+    expect(userStore.activeLinks[0]!.id).toBe('1')
     expect(userStore.linkCount).toBe(1)
   })
 
@@ -254,7 +254,7 @@ describe('User Store', () => {
 
       expect(userStore.userLinks).toHaveLength(1)
       expect(userStore.userLinks[0]).toMatchObject({ id: '1', title: 'One' })
-      expect(userStore.userLinks[0].createdAt).toBeInstanceOf(Date)
+      expect(userStore.userLinks[0]!.createdAt).toBeInstanceOf(Date)
     })
 
     it('sets error when token missing', async () => {
@@ -355,7 +355,7 @@ describe('User Store', () => {
 
       expect(userStore.userLinks[0]).toMatchObject({ id: '5', title: 'New' })
       expect(toastSuccessMock).toHaveBeenCalled()
-      const addSuccessMessage = toastSuccessMock.mock.calls[0][0] as string
+      const addSuccessMessage = toastSuccessMock.mock.calls[0]![0] as string
       expect(addSuccessMessage).toContain('Link erfolgreich')
     })
 
@@ -378,7 +378,7 @@ describe('User Store', () => {
       })).rejects.toThrow('Nicht authentifiziert')
 
       expect(userStore.error).toBe('Fehler beim Hinzufuegen des Links')
-      const missingTokenMessage = toastErrorMock.mock.calls[0][0] as string
+      const missingTokenMessage = toastErrorMock.mock.calls[0]![0] as string
       expect(missingTokenMessage).toContain('Fehler beim Hinzuf')
     })
 
@@ -434,7 +434,7 @@ describe('User Store', () => {
         order: 2
       })
 
-      expect(userStore.userLinks[0].description).toBeUndefined()
+      expect(userStore.userLinks[0]!.description).toBeUndefined()
       expect(toastSuccessMock).toHaveBeenCalled()
     })
 
@@ -647,6 +647,7 @@ describe('User Store', () => {
     })
   })
 })
+
 
 
 

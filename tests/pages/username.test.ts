@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { ref } from 'vue'
@@ -41,7 +41,7 @@ const UsernameComponent = {
         <!-- Avatar -->
         <div class="avatar-section">
           <img v-if="userData.avatar" :src="userData.avatar" :alt="userData.username" />
-          <div v-else class="default-avatar">👤</div>
+          <div v-else class="default-avatar">ðŸ‘¤</div>
           <h2>@{{ userData.username }}</h2>
           <p v-if="userData.name">{{ userData.name }}</p>
           <p v-if="userData.bio">{{ userData.bio }}</p>
@@ -412,7 +412,7 @@ describe('Username Page', () => {
 
     const defaultAvatar = wrapper.find('.default-avatar')
     expect(defaultAvatar.exists()).toBe(true)
-    expect(defaultAvatar.text()).toBe('👤')
+    expect(defaultAvatar.text()).toBe('ðŸ‘¤')
   })
 
   it('should handle home button click', async () => {
@@ -498,3 +498,4 @@ describe('Username Page', () => {
     expect(wrapper.text()).toContain('The user "" does not exist.')
   })
 })
+

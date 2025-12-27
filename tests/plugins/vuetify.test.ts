@@ -102,7 +102,7 @@ describe('plugins/vuetify', () => {
     expect(nuxtApp.vueApp.use).toHaveBeenCalledWith(vuetifyModuleMocks.instance)
 
     expect(useHeadMock).toHaveBeenCalledTimes(1)
-    expect(useHeadMock.mock.calls[0][0]).toMatchObject({
+    expect(useHeadMock.mock.calls[0]![0]).toMatchObject({
       link: expect.arrayContaining([
         expect.objectContaining({
           rel: 'stylesheet',
@@ -165,3 +165,4 @@ describe('plugins/vuetify', () => {
     consoleErrorSpy.mockRestore()
   })
 })
+

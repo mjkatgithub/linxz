@@ -1,4 +1,4 @@
-const defineNuxtPlugin = (globalThis as any).defineNuxtPlugin ?? ((plugin: any) => plugin)
+﻿const defineNuxtPlugin = (globalThis as any).defineNuxtPlugin ?? ((plugin: any) => plugin)
 const useHead = (globalThis as any).useHead ?? (() => undefined)
 
 // Bridge common composables used in templates to the #app mock
@@ -10,4 +10,5 @@ export { ref } from 'vue'
 export const $fetch: any = (...args: any[]) => (globalThis as any).$fetch?.(...args)
 
 export { defineNuxtPlugin, useHead }
+
 

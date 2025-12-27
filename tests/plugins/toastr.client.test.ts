@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 type VitestMock = ReturnType<typeof vi.fn>
 
@@ -76,4 +76,5 @@ describe('plugins/toastr.client', () => {
     expect(consoleErrorSpy).toHaveBeenCalledWith('[toastr.client plugin] Toast installation failed', installError)
   })
 })
+
 

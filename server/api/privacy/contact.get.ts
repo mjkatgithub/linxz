@@ -1,5 +1,5 @@
 import { createLogger } from '~/lib/logger'
-import { privacyContact } from '~/config/privacy'
+import { privacyContact } from '~~/config/privacy'
 
 const log = createLogger('api')
 
@@ -7,7 +7,7 @@ const log = createLogger('api')
  * API-Endpunkt für Kontaktdaten der Datenschutzerklärung
  * Diese Werte werden aus config/privacy.ts gelesen
  */
-export default defineEventHandler((event) => {
+export default defineEventHandler(() => {
   try {
     log.info('Privacy contact data loaded', { 
       name: privacyContact.name.substring(0, 15) + '...',

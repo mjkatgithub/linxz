@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
+﻿import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
 
 type LoggerModule = typeof import("~/lib/logger")
 type WinstonModule = typeof import("winston")
@@ -147,7 +147,7 @@ describe("lib/logger", () => {
     })
 
     expect(winstonMocks.consoleTransport).toHaveBeenCalledTimes(1)
-    const transportOptions = winstonMocks.consoleTransport.mock.calls[0][0] as Record<string, unknown>
+    const transportOptions = winstonMocks.consoleTransport.mock.calls[0]![0] as Record<string, unknown>
 
     const timestampResult = winstonMocks.formatTimestamp.mock.results[0]?.value
     const errorsResult = winstonMocks.formatErrors.mock.results[0]?.value
@@ -181,9 +181,9 @@ describe("lib/logger", () => {
       "user created",
       expect.objectContaining({ channel: "api", userId: 42 })
     ])
-    expect(winstonMocks.log.mock.calls[1][0]).toBe("error")
-    expect(winstonMocks.log.mock.calls[1][1]).toBe("login failed")
-    expect(winstonMocks.log.mock.calls[1][2]).toEqual(expect.objectContaining({
+    expect(winstonMocks.log.mock.calls[1]![0]).toBe("error")
+    expect(winstonMocks.log.mock.calls[1]![1]).toBe("login failed")
+    expect(winstonMocks.log.mock.calls[1]![2]).toEqual(expect.objectContaining({
       channel: "api",
       reason: "invalid"
     }))
@@ -306,7 +306,7 @@ describe("lib/logger", () => {
     testLogger.info("test with caller info", { customData: "value" })
 
     expect(winstonMocks.log).toHaveBeenCalledTimes(1)
-    const logCall = winstonMocks.log.mock.calls[0]
+    const logCall = winstonMocks.log.mock.calls[0]!
     
     expect(logCall[0]).toBe("info")
     expect(logCall[1]).toBe("test with caller info")
@@ -335,7 +335,7 @@ describe("lib/logger", () => {
     
     // Check that all calls include file and line information
     for (let i = 0; i < 3; i++) {
-      const metadata = winstonMocks.log.mock.calls[i][2] as Record<string, unknown>
+      const metadata = winstonMocks.log.mock.calls[i]![2] as Record<string, unknown>
       expect(metadata).toHaveProperty("file")
       expect(metadata).toHaveProperty("line")
       expect(metadata.file).not.toBe("unknown")
@@ -405,14 +405,15 @@ describe("lib/logger", () => {
 
     expect(winstonMocks.log).toHaveBeenCalledTimes(2)
     
-    const firstCall = winstonMocks.log.mock.calls[0]
+    const firstCall = winstonMocks.log.mock.calls[0]!
     expect(firstCall[2]).toEqual(expect.objectContaining({
       channel: "empty-context"
     }))
     
-    const secondCall = winstonMocks.log.mock.calls[1]
+    const secondCall = winstonMocks.log.mock.calls[1]!
     expect(secondCall[2]).toEqual(expect.objectContaining({
       channel: "empty-context"
     }))
   })
 })
+

@@ -1,6 +1,9 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { defineNuxtConfig } from 'nuxt/config'
+
 export default defineNuxtConfig({
-  compatibilityDate: '2025-05-15',
+  compatibilityDate: '2025-12-26',
+  srcDir: 'app',
   devtools: {
     enabled: true,
     timeline: {
@@ -18,10 +21,6 @@ export default defineNuxtConfig({
     '@prisma/nuxt',
     '@pinia/nuxt'
   ],
-  pinia: {
-    storesDirs: ['./stores'],
-    autoImports: ['defineStore', 'storeToRefs']
-  },
   css: [
     'vuetify/styles',
     '@mdi/font/css/materialdesignicons.css',

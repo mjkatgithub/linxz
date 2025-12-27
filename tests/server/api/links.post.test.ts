@@ -48,7 +48,7 @@ const importLinksPostHandler = async () => {
   const prismaModule = await import('~/lib/prisma')
   const loggerModule = await import('~/lib/logger')
   await import('~/lib/auth')
-  const module = await import('~/server/api/links.post')
+  const module = await import('~~/server/api/links.post')
 
   const prisma = prismaModule.default as unknown as PrismaMock
   const logger = loggerModule.default as unknown as LoggerMock
@@ -220,3 +220,4 @@ describe('POST /api/links', () => {
     })
   })
 })
+

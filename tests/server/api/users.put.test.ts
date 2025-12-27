@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from 'vitest'
+﻿import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from 'vitest'
 
 const readBodyMock = vi.fn()
 const createErrorMock = vi.fn((params: any = {}) => {
@@ -82,7 +82,7 @@ let originalDefineEventHandler: any
 const importUsersHandler = async () => {
   vi.resetModules()
 
-  const module = await import('~/server/api/users.put.ts')
+  const module = await import('~~/server/api/users.put.ts')
   const handler = module.default as (event: any) => Promise<any>
 
   return {
@@ -162,6 +162,7 @@ describe('PUT /api/users', () => {
         name: true,
         bio: true,
         avatar: true,
+        useGravatar: true,
         createdAt: true
       }
     })
@@ -221,6 +222,7 @@ describe('PUT /api/users', () => {
         name: true,
         bio: true,
         avatar: true,
+        useGravatar: true,
         createdAt: true
       }
     })
@@ -385,6 +387,7 @@ describe('PUT /api/users', () => {
         name: true,
         bio: true,
         avatar: true,
+        useGravatar: true,
         createdAt: true
       }
     })
@@ -419,3 +422,4 @@ describe('PUT /api/users', () => {
     expect(prisma.user.update).not.toHaveBeenCalled()
   })
 })
+

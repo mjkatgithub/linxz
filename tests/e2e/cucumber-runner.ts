@@ -1,8 +1,8 @@
-import { Given, When, Then, Before, After } from '@cucumber/cucumber'
+﻿import { Given, When, Then, Before, After } from '@cucumber/cucumber'
 import { expect } from '@playwright/test'
 import { chromium } from 'playwright'
 import type { Browser, Page } from 'playwright'
-import { setupTest, createMockUser, createMockLinkWithParams } from '~/tests/utils/test-helpers'
+import { setupTest, createMockUser, createMockLinkWithParams } from '../utils/test-helpers'
 
 // Global test state
 let browser: Browser
@@ -42,7 +42,9 @@ Given('I am on the {string} page', async function (this: CucumberContext, pageNa
   }
   
   const url = urls[pageName.toLowerCase()]
-  expect(url).toBeTruthy()
+  if (!url) {
+    throw new Error(`Unknown page: ${pageName}`)
+  }
   
   await page.goto(url)
   await page.waitForLoadState('networkidle')
@@ -384,4 +386,5 @@ Then('the link should be deleted from the database', function () {
 Then('the order should be saved in the database', function () {
   // Verify order was saved
 })
+
 

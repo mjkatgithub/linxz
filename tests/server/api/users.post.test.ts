@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from 'vitest'
+﻿import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from 'vitest'
 
 const readBodyMock = vi.fn()
 const createErrorMock = vi.fn((params: any = {}) => {
@@ -81,7 +81,7 @@ const importUsersHandler = async () => {
   const passwordModule = await import('~/lib/password')
   const jwtModule = await import('~/lib/jwt')
   const loggerModule = await import('~/lib/logger')
-  const module = await import('~/server/api/users.post.ts')
+  const module = await import('~~/server/api/users.post.ts')
 
   const prisma = prismaModule.default as unknown as PrismaMock
   const hashPassword = passwordModule.hashPassword as typeof hashPasswordMock
@@ -296,3 +296,4 @@ describe('POST /api/users', () => {
     expect(logger.info).not.toHaveBeenCalled()
   })
 })
+

@@ -154,3 +154,4 @@ Object.defineProperty(window, 'sessionStorage', {
 
 // Provide Vue ref globally for SFCs using auto-imports without transforms
 ;(globalThis as any).ref = vueRef
+
