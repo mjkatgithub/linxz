@@ -1,0 +1,16 @@
+node_modules
+.nuxt
+.output
+dist
+coverage
+*.log
+.env
+.env.*
+!.env.example
+.git
+.vscode
+README.md
+CHANGELOG.md
+prisma/migrations
+mysql_data
+tmp

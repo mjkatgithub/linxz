@@ -7,8 +7,8 @@ generator client {
 
 datasource db {
   provider          = "mysql"
-  url               = "mysql://Skylight1890:4*TNPhV8iCoG*fn5w2Gp@localhost:3306/linxz"
-  shadowDatabaseUrl = "mysql://Skylight1890:4*TNPhV8iCoG*fn5w2Gp@localhost:3306/linxz_shadow"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model User {

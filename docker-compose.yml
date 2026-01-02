@@ -1,0 +1,45 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=mysql://linxz_user:${DB_PASSWORD}@db:3306/linxz
+      - NUXT_HOST=0.0.0.0
+      - NUXT_PORT=3000
+      - PRIVACY_CONTACT_NAME=${PRIVACY_CONTACT_NAME}
+      - PRIVACY_CONTACT_ADDRESS=${PRIVACY_CONTACT_ADDRESS}
+      - PRIVACY_CONTACT_EMAIL=${PRIVACY_CONTACT_EMAIL}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - linxz-network
+
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      - MYSQL_DATABASE=linxz
+      - MYSQL_USER=linxz_user
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - linxz-network
+
+networks:
+  linxz-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
